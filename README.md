@@ -1,8 +1,8 @@
-# Vendrix
+# Veyrix
 
 Conversational commerce, connected to your business.
 
-Vendrix is a locally configurable shopping-agent prototype powered by LangChain
+Veyrix is a locally configurable shopping-agent prototype powered by LangChain
 and Groq. Businesses configure credentials and data connections through Tkinter;
 customers can browse products, read reviews, manage a cart, place confirmed
 pay-on-delivery orders, and cancel eligible orders through the local CLI.
