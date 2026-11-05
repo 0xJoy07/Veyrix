@@ -9,6 +9,7 @@ shopping agent.zip
 .env.local
 
 node_modules
+.vscode
 
 python/state/*.json
 python/__pycache__/

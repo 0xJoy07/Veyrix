@@ -1,0 +1,6 @@
+SQLAlchemy>=2.0,<2.1
+psycopg[binary]>=3.2,<4
+PyMySQL>=1.1,<2
+langchain-groq>=1,<2
+langchain-core>=1,<2
+keyring>=25,<26
