@@ -1,4 +1,4 @@
-import { Play, Pause, StepForward } from "lucide-react";
+import { Play, Pause, StepForward, ArrowDown, MessageSquare, Layers3, Bot, Database, ShoppingCart, ClipboardCheck } from "lucide-react";
 "use client"
 
 import { createContext, useContext, useEffect, useId, useState } from "react"
@@ -135,7 +135,7 @@ export default function EnterpriseAIPipeline() {
   return (
     <PausedContext.Provider value={stopped}><div className="veyrix-pipeline bg-[#090909] border border-white/[0.08] rounded-[14px] overflow-hidden font-sans w-full max-w-[900px] mx-auto">
       {/* Header */}
-      <div className="px-[18px] py-[11px] border-b border-white/[0.06] flex items-center justify-between">
+      <div className="pipeline-header px-[18px] py-[11px] border-b border-white/[0.06] flex items-center justify-between">
         <div className="flex items-center gap-[7px]">
           <motion.span
             className="w-[6px] h-[6px] rounded-full bg-green-500 inline-block"
@@ -432,13 +432,25 @@ export default function EnterpriseAIPipeline() {
         <StatusIndicator cx={550} cy={119} color="#f59e0b" pulsing duration={2.2} delay={0.35} />
       </svg></div>
 
+      <div className="pipeline-mobile" aria-label="Shopping agent workflow">
+        <div className="pipeline-mobile-node"><MessageSquare size={18} aria-hidden="true"/><div><span>Customer</span><strong>Shopping query</strong></div><small>Local CLI</small></div>
+        <ArrowDown className="pipeline-mobile-connector" size={18} aria-hidden="true"/>
+        <div className="pipeline-mobile-node"><Layers3 size={18} aria-hidden="true"/><div><span>Session</span><strong>History + cart</strong></div><small>In memory</small></div>
+        <ArrowDown className="pipeline-mobile-connector" size={18} aria-hidden="true"/>
+        <div className="pipeline-mobile-node pipeline-mobile-agent"><Bot size={20} aria-hidden="true"/><div><span>LLM agent</span><strong>Tool selection</strong></div><small>LangChain / Groq</small></div>
+        <ArrowDown className="pipeline-mobile-connector" size={18} aria-hidden="true"/>
+        <div className="pipeline-mobile-tools"><span><Database size={16} aria-hidden="true"/>Catalog</span><span><ShoppingCart size={16} aria-hidden="true"/>Cart</span><span><ClipboardCheck size={16} aria-hidden="true"/>Order draft</span></div>
+        <p>Tools are selected as needed.</p>
+      </div>
+
       {/* Message Display */}
-      <div className="border-t border-white/[0.06] px-[18px] py-[9px] h-[76px] sm:h-[52px]">
+      <div className="pipeline-message border-t border-white/[0.06] px-[18px] py-[9px]">
         <div className="flex gap-2 items-start h-full">
           <span className="text-[#0052FF]/55 font-sans text-[13px] leading-[1.5] shrink-0">
             ›
           </span>
-          <div className="relative flex-1 overflow-hidden h-full">
+          <div className="pipeline-message-stack relative flex-1">
+            {messages.map(message => <span key={message} className="pipeline-message-reserve" aria-hidden="true">{message}</span>)}
             <AnimatePresence mode="wait">
               <motion.div
                 key={messageIndex}
@@ -446,7 +458,7 @@ export default function EnterpriseAIPipeline() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: stopped ? 0 : -5 }}
                 transition={{ duration: 0.25 }}
-                className="font-sans text-[11px] text-white/75 leading-[1.55] absolute inset-0"
+                className="pipeline-message-text font-sans text-[11px] text-white/75 leading-[1.55]"
               >
                 {messages[messageIndex]}
               </motion.div>

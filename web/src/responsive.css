@@ -1,0 +1,140 @@
+/* Responsive refinements for the shared chrome and reading surfaces. */
+#root, main, .route-content { min-width: 0; }
+.site-header { height: 80px; gap: 24px; }
+.site-header .brand { flex-shrink: 0; }
+.main-nav { min-width: 0; gap: clamp(16px, 2vw, 28px); }
+.nav-actions { display: flex; align-items: center; gap: 12px; }
+.main-nav .nav-actions > a::after { display: none; }
+.menu-toggle { min-width: 44px; min-height: 44px; align-items: center; justify-content: center; flex-shrink: 0; }
+.site-footer { flex-wrap: wrap; }
+.site-footer-links { display: flex; gap: 12px 24px; flex-wrap: wrap; align-items: center; }
+.site-footer-links > a { display: inline-flex; gap: 8px; align-items: center; font-size: 11px; color: #aaa; min-height: 44px; }
+.site-footer-links > a:hover { color: #fff; }
+.footer-invitation-actions { width: min(100%, 290px); }
+.footer-invitation-actions > a { width: 100%; }
+.knowledge-page { width: min(1280px, calc(100% - clamp(32px, 10vw, 120px))); }
+.knowledge-page :is(h1, h2, h3, p, dd, strong, a) { overflow-wrap: break-word; }
+.doc-section-title > div, .doc-surface, .doc-reading-link, .doc-callout > div, .doc-bottom-nav > a { min-width: 0; }
+.doc-table-wrap, .status-verification-wrap { overscroll-behavior-inline: contain; }
+.doc-reading-link { min-height: 44px; }
+.doc-inline-link, .doc-bottom-nav > a { min-height: 44px; }
+.doc-meta > span { line-height: 1.8; }
+.repository-start { display: flex; align-items: center; justify-content: space-between; gap: 26px; padding: 24px; border: 1px solid #293143; border-radius: 10px; background: #090c13; margin-bottom: 24px; }
+.repository-start > div { min-width: 0; }
+.repository-start h3 { margin-bottom: 8px; }
+.repository-start p { font-size: 12px; max-width: 490px; margin: 0; }
+.repository-start .github-repo-button { flex-shrink: 0; }
+.layer-picker button { min-height: 44px; }
+.project-status-page .status-domain { min-width: 0; }
+.project-status-page .status-search, .project-status-page .status-domain select { min-height: 48px; height: auto; }
+.project-status-page .status-search input { min-height: 44px; }
+.project-status-page .status-search > button { height: 44px; min-width: 36px; flex-shrink: 0; }
+.project-status-page .status-filter-pills button, .project-status-page .status-reset { min-height: 44px; }
+.project-status-page .status-filter-pills button { white-space: normal; }
+.project-status-page .status-capability-trigger { overflow-wrap: anywhere; }
+.project-status-page .status-section-heading > div { min-width: 0; }
+.veyrix-terminal .terminal-title { min-width: 0; flex-wrap: wrap; row-gap: 6px; }
+.veyrix-terminal .terminal-title > svg, .veyrix-terminal .terminal-window-dots { flex-shrink: 0; }
+.veyrix-terminal .terminal-title > span:last-child { overflow-wrap: anywhere; }
+.veyrix-terminal .terminal-controls { min-width: 0; gap: 6px; }
+.veyrix-terminal .terminal-controls button { min-height: 44px; justify-content: center; }
+.veyrix-terminal .terminal-status > span { min-width: 0; overflow-wrap: anywhere; }
+.pipeline-header { gap: 10px 20px; flex-wrap: wrap; }
+.pipeline-header > div { min-width: 0; }
+.pipeline-header > div > span:first-child { flex-shrink: 0; }
+.pipeline-message { min-height: 54px; }
+.pipeline-message-stack { display: grid; min-width: 0; align-content: start; }
+.pipeline-message-reserve, .pipeline-message-text { grid-area: 1 / 1; font-size: 11px; line-height: 1.55; overflow-wrap: anywhere; }
+.pipeline-message-reserve { visibility: hidden; pointer-events: none; }
+.pipeline-mobile { display: none; }
+.pipeline-controls .pipeline-playback { min-height: 44px; }
+.pipeline-footer { gap: 18px 25px; }
+.pipeline-footer > div { min-width: 0; }
+.pipeline-scroll { max-width: 100%; overscroll-behavior-inline: contain; }
+@media (max-width: 1240px) {
+  .brand-docs, .brand-divider { display: none; }
+  .site-header { padding-inline: 5%; }
+  .main-nav { gap: 18px; }
+}
+@media (max-width: 1100px) {
+  .site-header { height: 72px; }
+  .site-header .menu-toggle { display: inline-flex; background: transparent; border: 0; color: #eee; }
+  .main-nav { display: none; position: absolute; top: 72px; left: 0; right: 0; padding: 18px 5% 24px; background: #080808; border-bottom: 1px solid #343434; flex-direction: column; align-items: stretch; gap: 2px; max-height: calc(100dvh - 72px); overflow-y: auto; overscroll-behavior-y: contain; font-size: 13px; box-shadow: 0 24px 30px #0006; }
+  .main-nav.open { display: flex; }
+  .main-nav > a { display: flex; align-items: center; min-height: 44px; width: fit-content; max-width: 100%; }
+  .main-nav > a::after { bottom: 6px !important; }
+  .main-nav .nav-actions { border-top: 1px solid #2c2c2c; padding-top: 18px; margin-top: 8px; flex-wrap: wrap; }
+  .docs-nav { padding-inline: 5%; }
+  .docs-nav a { display: inline-flex; align-items: center; min-height: 44px; }
+  .docs-nav { padding-block: 8px 14px; }
+  .site-footer > p { order: 3; flex-basis: 100%; }
+}
+@media (max-width: 860px) {
+  .doc-rail nav a { min-height: 44px; align-items: center; flex-shrink: 0; }
+  .doc-rail nav { padding-bottom: 10px; }
+  .repository-start { align-items: flex-start; }
+  .repository-start .github-repo-button { min-width: 140px; }
+}
+@media (max-width: 640px) {
+  .knowledge-page { width: calc(100% - 32px); }
+  .site-header { padding-inline: 16px; }
+  .site-header .brand { font-size: 23px; }
+  .main-nav { padding-inline: 20px; }
+  .site-footer { padding-inline: 20px; gap: 18px; }
+  .site-footer-links { gap: 4px 18px; }
+  .home-footer-invitation { padding-inline: 20px; }
+  .footer-invitation-actions { width: min(100%, 340px); }
+  .repository-start { flex-direction: column; padding: 20px; gap: 18px; }
+  .repository-start .github-repo-button { width: 100%; }
+  .doc-two-up { gap: 14px; }
+  .doc-section-title { align-items: flex-start; }
+  .doc-section-number { line-height: 2.5; }
+  .doc-callout { padding: 16px; }
+  .layer-detail { min-height: 0; }
+  .project-status-page .status-search { padding-inline: 10px; }
+  .project-status-page .status-search input, .project-status-page .status-domain select { font-size: 16px; }
+  .project-status-page .status-search input::placeholder { font-size: 12px; }
+  .project-status-page .status-domain select { min-width: 0; width: 100%; }
+  .project-status-page .status-summary-card { min-width: 0; }
+  .veyrix-terminal .terminal-controls { width: 100%; }
+  .veyrix-terminal .terminal-controls button { flex: 1 1 auto; padding-inline: 10px; }
+  .veyrix-terminal .terminal-line, .veyrix-terminal .terminal-line-reserve { font-size: 11px; }
+  .veyrix-terminal .terminal-body { padding-inline: 12px; }
+
+  .runtime-limits { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 360px) {
+  .site-footer-links { flex-direction: column; align-items: flex-start; }
+  .main-nav .nav-actions { display: grid; grid-template-columns: minmax(0,1fr); }
+  .main-nav .nav-actions > a { width: 100%; }
+  .knowledge-page h1 { font-size: 29px; }
+  .runtime-limits > div { padding-inline: 8px; }
+  .runtime-limits strong { font-size: 20px; letter-spacing: -.5px; }
+  .doc-surface, .doc-reading-link, .module-map > div { padding: 18px; }
+}
+/* Source chips are real repository links with visible focus and touch spacing. */
+.source-paths a, .status-evidence-paths a { display: inline-flex; align-items: center; min-height: 36px; max-width: 100%; border-radius: 5px; }
+.source-paths a:hover code, .status-evidence-paths a:hover code { color: #cfddff; border-color: #6077a9; background: #162139; }
+@media (pointer: coarse) {
+  .source-paths a, .status-evidence-paths a { min-height: 44px; }
+}
+
+@media (max-width: 720px) {
+  .pipeline-scroll { display: none; }
+  .pipeline-mobile { display: flex; flex-direction: column; align-items: stretch; padding: 22px 16px 16px; }
+  .pipeline-mobile-node { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; padding: 14px; border: 1px solid #2b2f38; border-radius: 9px; background: #101115; color: #9fbaff; }
+  .pipeline-mobile-node > div { flex: 1; min-width: 100px; }
+  .pipeline-mobile-node span { display: block; font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: #94a0ba; }
+  .pipeline-mobile-node strong { display: block; font-size: 12px; font-weight: 500; color: #eceef5; margin-top: 4px; }
+  .pipeline-mobile-node small { font-size: 9px; color: #8994aa; }
+  .pipeline-mobile-agent { background: #080e20; border-color: #436cc7; }
+  .pipeline-mobile-connector { align-self: center; margin: 8px; color: #557bc9; }
+  .pipeline-mobile-tools { display: flex; flex-wrap: wrap; gap: 7px; }
+  .pipeline-mobile-tools > span { display: flex; align-items: center; justify-content: center; gap: 7px; padding: 12px 8px; background: #0e1513; border: 1px solid #2f493e; color: #9acdb8; border-radius: 7px; font-size: 10px; flex: 1 1 70px; }
+  .pipeline-mobile > p { font-size: 9px; text-align: center; color: #84928c; margin: 13px 0 0; }
+  .pipeline-message { padding-block: 14px; }
+  .pipeline-controls { width: 100%; margin: 0; }
+  .pipeline-controls .pipeline-playback { flex: 1 1 120px; justify-content: center; }
+  .pipeline-footer { padding: 16px; }
+  .pipeline-header { padding-inline: 16px; }
+}

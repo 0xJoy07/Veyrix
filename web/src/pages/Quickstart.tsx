@@ -1,21 +1,31 @@
-import { useState } from 'react';
-import { Check, TerminalSquare, ArrowRight } from 'lucide-react';
+import { GitHubRepoButton } from '@/components/ui/github-repo-button';
+import { useState, type ReactNode } from 'react';
+import { Check, TerminalSquare, ArrowRight, ArrowUpRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Code } from '@/components/code-block';
 import { Disclosure, DocCallout, DocumentSection, OnThisPage } from '@/components/docs/document-parts';
+import { optionalSetupResources, requiredSetupResources, setupLinks } from '@/content/setup-resources';
+import { pythonSourceUrl } from '@/lib/repository';
+import './quickstart-resources.css';
 
+const preflight = String.raw`python --version
+python -m pip --version
+python -m tkinter`;
 const setup = String.raw`python -m venv main_setup/python/.venv
 .\main_setup\python\.venv\Scripts\python.exe -m pip install -r main_setup/python/requirements-dev.txt
 .\main_setup\python\.venv\Scripts\python.exe main_setup/python/main.py setup`;
 const chat = String.raw`.\main_setup\python\.venv\Scripts\python.exe main_setup/python/main.py customer --id demo --name "Demo Customer"
 .\main_setup\python\.venv\Scripts\python.exe main_setup/python/main.py chat --customer demo`;
 const verify = String.raw`.\main_setup\python\.venv\Scripts\python.exe -m pytest main_setup/python/tests -q`;
+const frontend = String.raw`npm ci --prefix web
+npm run dev --prefix web`;
 const sections = [
   { id: 'prerequisites', label: 'Before you start' },
   { id: 'install', label: 'Install the environment' },
   { id: 'configure', label: 'Configure the store' },
   { id: 'first-chat', label: 'Run a conversation' },
   { id: 'verify', label: 'Check your result' },
+  { id: 'optional-tools', label: 'Optional tools' },
   { id: 'troubleshooting', label: 'Troubleshooting' },
 ];
 const prerequisites = [
@@ -25,18 +35,31 @@ const prerequisites = [
   { title: 'An empty database for this demo', text: 'Choose a new SQLite file. The setup tool initializes only empty databases.' },
 ];
 
+function SetupLink({ href, children }: { href: string; children: ReactNode }) {
+  return <a className="setup-resource-link" href={href} target="_blank" rel="noopener noreferrer">{children}<ArrowUpRight size={14} aria-hidden="true"/><span className="sr-only"> (opens in a new tab)</span></a>;
+}
+
 export default function Quickstart() {
   const [checked, setChecked] = useState<string[]>([]);
   return <div className="knowledge-page quickstart-page">
     <header className="doc-hero"><p className="kicker">DOCUMENTATION / QUICKSTART</p><h1>Your first conversation.<br/><span>From a clean local setup.</span></h1><p>Set up a sample store, start the shopping agent, and complete an explicitly confirmed order. This walkthrough uses Windows PowerShell and the bundled SQLite sample catalog.</p><div className="doc-meta"><span><TerminalSquare size={14}/>Windows · PowerShell</span><span>Python 3.12</span><span>Sample data included</span></div></header>
     <div className="doc-layout"><OnThisPage sections={sections}/><article className="doc-article">
       <DocumentSection id="prerequisites" number="00" title="Prepare your workspace" description="Use this checklist to keep track of your setup. Checks are personal reminders for this visit, not automatic environment detection.">
+        <div className="repository-start"><div><h3>Get the project source</h3><p>Open the Veyrix repository, clone it or download its ZIP, and open the extracted project folder in your editor.</p></div><GitHubRepoButton label="Open GitHub repo"/></div>
+        <h3 className="doc-subheading">Official downloads & accounts</h3>
+        <p>Prepare these before running the install commands. Each link opens the official download page or service in a new tab.</p>
+        <div className="setup-resource-grid">{requiredSetupResources.map(resource => <div className="setup-resource-card" key={resource.title}><span className="setup-resource-badge">{resource.badge}</span><h3>{resource.title}</h3><p>{resource.text}</p><div className="setup-resource-links">{resource.links.map(link => <SetupLink key={link.href} href={link.href}>{link.label}</SetupLink>)}</div><p className="setup-resource-note">{resource.note}</p></div>)}</div>
+        <div className="setup-included"><h3>Already included in the Python setup</h3><p>The standard Windows installer supplies Tkinter and SQLite support. Creating a virtual environment provides pip for installing the project’s packages. The SQLite demo uses a local file created by the setup window.</p><div className="setup-resource-links"><SetupLink href={setupLinks.tkinter}>Tkinter setup check</SetupLink><SetupLink href={setupLinks.venv}>Virtual environments</SetupLink><SetupLink href={setupLinks.pip}>pip installation help</SetupLink><SetupLink href={setupLinks.sqlite}>SQLite reference</SetupLink></div></div>
+        <h3 className="doc-subheading">Ready to start?</h3>
         <div className="prerequisite-list">{prerequisites.map(item => <label key={item.title}><input type="checkbox" checked={checked.includes(item.title)} onChange={event => setChecked(current => event.target.checked ? [...current, item.title] : current.filter(title => title !== item.title))}/><span className="prerequisite-check" aria-hidden="true"><Check size={14}/></span><span><strong>{item.title}</strong><small>{item.text}</small></span></label>)}<div className="checklist-total" aria-live="polite">{checked.length} of {prerequisites.length} prerequisites checked<span>{checked.length === prerequisites.length ? 'Ready to follow the steps' : 'Check each item when ready'}</span></div></div>
       </DocumentSection>
 
       <DocumentSection id="install" number="01" title="Create the environment" description="Run the following commands from the repository root, one at a time. The last command opens the desktop setup window.">
+        <h3 className="doc-subheading">Check Python first</h3><p>Confirm the version is 3.12.x and pip is available. The final check opens a small Tkinter demo window; close it before continuing.</p><Code text={preflight}/>
+        <h3 className="doc-subheading">Install the project packages</h3>
         <Code text={setup}/>
         <p className="doc-footnote">Calling the environment’s Python executable directly avoids needing to activate PowerShell scripts. Keep the setup window open for the next step.</p>
+        <div className="setup-included"><h3>Installed by the requirements file</h3><p>The command installs SQLAlchemy, the PostgreSQL and MySQL drivers, LangChain Core, the Groq integration, OS keyring support, and pytest. Keep package versions together by using the project manifests.</p><div className="setup-resource-links"><SetupLink href={pythonSourceUrl('requirements.txt')}>Runtime dependencies</SetupLink><SetupLink href={pythonSourceUrl('requirements-dev.txt')}>Development dependencies</SetupLink><SetupLink href={pythonSourceUrl('requirements-lock.txt')}>Recorded package versions</SetupLink></div></div>
         <DocCallout title="Reproducing the validated dependency set">For the exact recorded package versions, use <code>main_setup/python/requirements-lock.txt</code> in the install command instead of <code>requirements-dev.txt</code>.</DocCallout>
       </DocumentSection>
 
@@ -47,6 +70,8 @@ export default function Quickstart() {
           <li><strong>Configure the model.</strong><p>Enter your Groq API key and a tool-capable model ID available to your account. Use <em>Test Groq</em> to check the credentials and connection.</p></li>
           <li><strong>Validate and save.</strong><p>Review the store settings, test the database connection, and save the profile. Close the setup window before continuing in PowerShell.</p></li>
         </ol>
+        <div className="setup-resource-links setup-sample-links"><SetupLink href={pythonSourceUrl('examples/products.csv')}>Sample products CSV</SetupLink><SetupLink href={pythonSourceUrl('examples/products.json')}>Additional product JSON sample</SetupLink><SetupLink href={pythonSourceUrl('examples/reviews.csv')}>Sample reviews CSV</SetupLink></div>
+        <p className="doc-footnote">Follow this walkthrough with the products CSV. The optional JSON sample adds a separate Cotton Hat item; it does not contain the Walking Shoes used below.</p>
         <div className="doc-table-wrap" tabIndex={0} aria-label="Store configuration reference"><table className="doc-table"><caption>Settings to review for the sample store</caption><thead><tr><th>Setting</th><th>First-run choice</th><th>Effect</th></tr></thead><tbody>
           <tr><th scope="row">Store name</th><td>A recognizable demo name</td><td>Identifies the business in the agent’s context.</td></tr>
           <tr><th scope="row">Currency</th><td>INR for the bundled example</td><td>One currency per store; amounts use two decimal places.</td></tr>
@@ -73,7 +98,13 @@ export default function Quickstart() {
         <Link to="/status" className="doc-inline-link">See the verification coverage and remaining gaps <ArrowRight size={15}/></Link>
       </DocumentSection>
 
-      <DocumentSection id="troubleshooting" number="05" title="Resolve common setup issues" description="Start with the specific stage that failed.">
+      <DocumentSection id="optional-tools" number="05" title="Tools for other workflows" description="These are optional. Choose them when cloning the repository, working on the website, or connecting an external database.">
+        <div className="setup-optional-grid">{optionalSetupResources.map(resource => <div className="setup-resource-card" key={resource.title}><span className="setup-resource-badge">Optional</span><h3>{resource.title}</h3><p>{resource.text}</p><SetupLink href={resource.href}>{resource.label}</SetupLink></div>)}</div>
+        <h3 className="doc-subheading">Run the documentation website locally</h3><p>After installing Node.js, run these commands from the repository root and open the local address printed by Vite. This frontend runs independently and needs no Groq key or database.</p><Code text={frontend}/>
+        <DocCallout title="Choosing an external database">PostgreSQL and MySQL need a reachable server, an existing empty database for initialization, and credentials with the required permissions. Enter those details in the setup window. The included drivers connect to the server; they do not install it.</DocCallout>
+      </DocumentSection>
+
+      <DocumentSection id="troubleshooting" number="06" title="Resolve common setup issues" description="Start with the specific stage that failed.">
         <div className="doc-accordion-group">
           <Disclosure title="Python or the setup window does not start"><p>Confirm that <code>python</code> resolves to Python 3.12 and that Tkinter is installed. If Windows opens the Store instead, check the Python installation and execution alias. Run the commands from the repository root so the <code>main_setup/python</code> paths resolve correctly.</p></Disclosure>
           <Disclosure title="The database cannot be initialized"><p>Initialization is designed for an empty database. Choose a new file for the demo. For an existing Veyrix database, validate its schema instead of trying to initialize it again.</p></Disclosure>

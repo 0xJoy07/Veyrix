@@ -14,6 +14,7 @@
 
 import * as React from "react"
 import { Link } from "react-router-dom"
+import { REPOSITORY_URL } from "@/content/repository"
 
 export interface HalftonePalette {
   /** The footer background. */
@@ -67,7 +68,7 @@ export interface HalftoneWordmarkFooterProps {
   fontWeight?: number
   /** Face for the small type. */
   monoFamily?: string
-  /** Root height. A definite length, never a percentage. */
+  /** Minimum visual height. The footer can grow to accommodate wrapped links. */
   height?: string
   /** Extra root class names. */
   className?: string
@@ -83,7 +84,7 @@ const PRESETS: { [K in HalftonePreset]: HalftonePalette } = {
 const DEFAULT_COLUMNS: FooterColumn[] = [
   { title: "Explore", links: [{ label: "Documentation", href: "/docs" }, { label: "Architecture", href: "/architecture" }] },
   { title: "Build", links: [{ label: "Quickstart", href: "/docs/quickstart" }, { label: "Project status", href: "/status" }] },
-  { title: "Veyrix", links: [{ label: "Home", href: "/" }, { label: "Current scope", href: "/status" }] },
+  { title: "Veyrix", links: [{ label: "GitHub repository", href: REPOSITORY_URL }, { label: "Home", href: "/" }, { label: "Current scope", href: "/status" }] },
 ]
 
 const SANS_STACK = '"Inter Tight", "Inter Variable", "Inter", "Helvetica Neue", Arial, system-ui, sans-serif'
@@ -144,6 +145,7 @@ export function hwfFitSize(measured: number, width: number) {
 const HWF_CSS = `
 .hwf-root {
   position: relative; width: 100%; overflow: hidden; isolation: isolate;
+  min-width: 0; padding-bottom: clamp(110px, 22vw, 350px);
   background: var(--hwf-bg); color: var(--hwf-ink); -webkit-font-smoothing: antialiased;
 }
 .hwf-root canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; max-width: none; }
@@ -153,12 +155,14 @@ const HWF_CSS = `
   font-family: var(--hwf-mono); font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase; line-height: 1.75;
 }
 .hwf-brand strong { display: block; font-weight: 500; }
+.hwf-brand, .hwf-col { min-width: 0; overflow-wrap: anywhere; }
 .hwf-brand span { opacity: .45; }
 .hwf-col h3 { margin: 0; font: inherit; opacity: .4; font-weight: 500; }
 .hwf-col ul { list-style: none; margin: 0; padding: 0; }
 .hwf-col a, .hwf-up {
   color: inherit; text-decoration: none; opacity: .78; background: none; border: 0; padding: 0;
   font: inherit; letter-spacing: inherit; text-transform: inherit; cursor: pointer;
+  display: inline-flex; align-items: center; min-height: 44px; max-width: 100%;
   background-image: linear-gradient(currentColor, currentColor); background-size: 0% 1px;
   background-repeat: no-repeat; background-position: 0 100%; transition: opacity .25s ease, background-size .35s cubic-bezier(.2,.7,.1,1);
 }
@@ -174,6 +178,9 @@ const HWF_CSS = `
 @media (max-width: 720px) {
   .hwf-top { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); row-gap: 18px; }
   .hwf-brand { grid-column: 1 / -1; }
+  .hwf-top { column-gap: 20px; }
+  .hwf-col a { font-size: 10px; letter-spacing: .07em; line-height: 1.6; }
+  .hwf-rule { justify-content: flex-start; }
 }
 @media (prefers-reduced-motion: reduce) {
   .hwf-col a, .hwf-up { transition: none; }
@@ -213,7 +220,8 @@ export default function HalftoneWordmarkFooter({
     const ctx = canvas.getContext("2d")
     if (!ctx) { root.classList.add("hwf-canvas-fallback"); return }
 
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)")
+    let reduced = motionQuery.matches
     let w = 0
     let h = 0
     let dpr = 1
@@ -391,7 +399,7 @@ export default function HalftoneWordmarkFooter({
       return [e.clientX - b.left, e.clientY - b.top]
     }
     const onMove = (e: PointerEv) => {
-      if (!opts.current.interactive || reduced) return
+      if (!opts.current.interactive || reduced || e.pointerType === "touch") return
       const p = toLocal(e)
       px = p[0]
       py = p[1]
@@ -417,9 +425,16 @@ export default function HalftoneWordmarkFooter({
     root.addEventListener("pointermove", onMove)
     root.addEventListener("pointerleave", onLeave)
     root.addEventListener("pointerdown", onDown)
+    let resizeTimer = 0
     const ro = new ResizeObserver(() => {
-      layout()
-      wake()
+      window.clearTimeout(resizeTimer)
+      resizeTimer = window.setTimeout(() => {
+        if (!alive) return
+        const bounds = root.getBoundingClientRect()
+        if (Math.round(bounds.width) === w && Math.round(bounds.height) === h) return
+        layout()
+        wake()
+      }, 100)
     })
     ro.observe(root)
     const io = new IntersectionObserver((entries) => {
@@ -427,6 +442,14 @@ export default function HalftoneWordmarkFooter({
       if (visible) wake()
     })
     io.observe(root)
+    const onMotionChange = () => {
+      reduced = motionQuery.matches
+      px = py = -1e5
+      ring.t = -1
+      layout()
+      wake()
+    }
+    motionQuery.addEventListener("change", onMotionChange)
     // A web font that lands late re-sets the word in its real face.
     let alive = true
     if (document.fonts && document.fonts.ready) {
@@ -440,6 +463,8 @@ export default function HalftoneWordmarkFooter({
     return () => {
       alive = false
       cancelAnimationFrame(raf)
+      window.clearTimeout(resizeTimer)
+      motionQuery.removeEventListener("change", onMotionChange)
       ro.disconnect()
       io.disconnect()
       root.removeEventListener("pointermove", onMove)
@@ -459,7 +484,7 @@ export default function HalftoneWordmarkFooter({
       className={"hwf-root " + className}
       style={
         {
-          height,
+          minHeight: height,
           "--hwf-bg": colors.background,
           "--hwf-ink": colors.ink,
           "--hwf-mono": monoFamily,
@@ -480,7 +505,7 @@ export default function HalftoneWordmarkFooter({
             <ul>
               {col.links.map((l) => (
                 <li key={l.label}>
-                  {l.href?.startsWith("/") ? <Link to={l.href}>{l.label}</Link> : l.href ? <a href={l.href}>{l.label}</a> : <span>{l.label}</span>}
+                  {l.href?.startsWith("/") ? <Link to={l.href}>{l.label}</Link> : l.href ? <a href={l.href} target="_blank" rel="noopener noreferrer" aria-label={`${l.label} (opens in a new tab)`}>{l.label}</a> : <span>{l.label}</span>}
                 </li>
               ))}
             </ul>

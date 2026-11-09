@@ -73,13 +73,13 @@ main:focus{outline:none}
   .af-experience.veyrix-home .intro-description{font-size:14px}
 }
 /* Navigation underlines animate independently of the button surfaces. */
-.main-nav a:not(.anti-metal-button),.docs-nav a{position:relative;text-decoration:none;transition:color 220ms ease}
-.main-nav a:not(.anti-metal-button)::after,.docs-nav a::after{content:'';position:absolute;left:0;right:0;bottom:-7px;height:1px;background:currentColor;transform:scaleX(0);transform-origin:left;transition:transform 280ms cubic-bezier(.22,1,.36,1);pointer-events:none}
+.main-nav a:not(.interactive-hover-button):not(.github-repo-button),.docs-nav a{position:relative;text-decoration:none;transition:color 220ms ease}
+.main-nav a:not(.interactive-hover-button):not(.github-repo-button)::after,.docs-nav a::after{content:'';position:absolute;left:0;right:0;bottom:-7px;height:1px;background:currentColor;transform:scaleX(0);transform-origin:left;transition:transform 280ms cubic-bezier(.22,1,.36,1);pointer-events:none}
 .main-nav a.active,.docs-nav a.active{text-decoration:none}
-.main-nav a:not(.anti-metal-button):is(:hover,:focus-visible,.active)::after,.docs-nav a:is(:hover,:focus-visible,.active)::after{transform:scaleX(1)}
+.main-nav a:not(.interactive-hover-button):not(.github-repo-button):is(:hover,:focus-visible,.active)::after,.docs-nav a:is(:hover,:focus-visible,.active)::after{transform:scaleX(1)}
 .af-experience.veyrix-home .chapter-nav button i{width:100%;transform:scaleX(var(--chapter-progress,0));transform-origin:left;transition:none;pointer-events:none}
 /* GSAP supplies the smoothed progress; no competing CSS transition or timers. */
-@media(prefers-reduced-motion:reduce){.main-nav a:not(.anti-metal-button),.docs-nav a,.main-nav a:not(.anti-metal-button)::after,.docs-nav a::after{transition:none}.af-experience.veyrix-home .chapter-nav button i{display:none}}
+@media(prefers-reduced-motion:reduce){.main-nav a:not(.interactive-hover-button):not(.github-repo-button),.docs-nav a,.main-nav a:not(.interactive-hover-button):not(.github-repo-button)::after,.docs-nav a::after{transition:none}.af-experience.veyrix-home .chapter-nav button i{display:none}}
 /* Route loading: real lazy chunks with a short, consistent reveal on navigation. */
 .route-skeleton{max-width:1160px;min-height:70svh;margin:0 auto;padding:64px 6% 80px}
 .route-skeleton.skeleton-home{padding-top:160px;min-height:100svh}
@@ -111,7 +111,7 @@ main:focus{outline:none}
 .dot-field-copy:focus-within{opacity:1!important}
 .dot-field .dot-field-copy>div:first-child>span{font-size:10px;letter-spacing:1.5px;border-color:#333;background:#080808cc;color:#b6b6b6}
 .dot-field .dot-field-copy p{font-size:14px;line-height:1.7;color:#aaa}
-.dot-field .anti-metal-button{font-size:12px}
+.dot-field .interactive-hover-button{font-size:12px}
 .dot-field-fallback .dot-field-heading{position:absolute;width:90%;height:auto;clip:auto;clip-path:none;white-space:pre-line;left:5%;top:30%;text-align:center;font-size:clamp(30px,6vw,86px);line-height:1.1}
 @media(max-width:640px){.dot-field .dot-field-copy>div:first-child>span{font-size:8px;letter-spacing:.8px}.dot-field .dot-field-copy p{font-size:12px;max-width:320px}}
 @media(prefers-reduced-motion:reduce){
@@ -126,10 +126,8 @@ main:focus{outline:none}
 .technology-marquee .technology-label{flex-shrink:0;margin:0;color:#999;font:9px var(--font-sans);letter-spacing:1.8px}
 .technology-item{display:inline-flex;align-items:center;gap:32px;flex-shrink:0;padding:8px 38px;font:500 18px var(--font-sans);letter-spacing:-.4px;color:#d6d6d6;white-space:nowrap}
 .technology-separator{width:3px;height:3px;border-radius:50%;background:#666}
-.technology-motion-button{display:grid;place-items:center;flex-shrink:0;width:34px;height:34px;border:1px solid #303030;border-radius:7px;color:#aaa;background:#101010}
-.technology-motion-button:hover{color:#fff;border-color:#666}
 @media(max-width:640px){.technology-marquee{flex-wrap:wrap;gap:12px;padding:20px 6%}.technology-marquee .technology-label{width:100%}.technology-marquee .veyrix-marquee{flex:1}.technology-item{font-size:15px;gap:22px;padding:8px 26px}}
-@media(prefers-reduced-motion:reduce){.technology-motion-button{display:none}.technology-item{padding:5px 12px}.technology-separator{display:none}}
+@media(prefers-reduced-motion:reduce){.technology-item{padding:5px 12px}.technology-separator{display:none}}
 /* Homepage closing invitation and interactive halftone footer. */
 .home-footer-invitation{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:60px;padding:90px 8%;border-top:1px solid #242424;background:radial-gradient(ellipse at 80% 100%,#131313,transparent 65%),#000}
 .footer-invitation-copy{max-width:670px}
@@ -151,5 +149,4 @@ main:focus{outline:none}
 @media(max-width:480px){.home-footer-invitation{padding-block:55px}.footer-invitation-copy h2{font-size:36px;letter-spacing:-1.3px}.veyrix-wordmark-footer .hwf-top{gap:20px;font-size:9px}.veyrix-wordmark-footer .hwf-brand strong{max-width:none}}
 /* Keep the paired footer actions equal without changing buttons elsewhere. */
 .footer-invitation-actions{width:280px;max-width:100%;min-width:0}
-.footer-invitation-actions>.anti-metal-button{width:100%;height:48px;min-height:48px;justify-content:flex-start;padding:12px 16px 12px 56px;font-size:12px}
-.footer-invitation-actions>.anti-metal-button .metal-label{white-space:normal;text-align:left}
+.footer-invitation-actions>.interactive-hover-button,.footer-invitation-actions>.github-repo-button{width:100%;min-height:48px;font-size:12px}

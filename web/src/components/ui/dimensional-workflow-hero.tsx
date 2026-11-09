@@ -100,8 +100,8 @@ export type EmphasisText = { lines: string[]; emphasis?: string };
  * --workflow-panel-background/foreground/muted/border, --workflow-canvas-background,
  * --workflow-panel-accent, --workflow-shadow-color, --workflow-signal-color and
  * --workflow-code-purple/blue/gold customize the illustrative artwork independently.
- * Phone layouts retain 3D when allowed. OS reduced motion renders chapters in reading
- * order without pinning. Each instance cleans up its own GSAP context on unmount.
+ * Roomy phone layouts retain 3D. Compact screens, short landscape viewports, and
+ * OS reduced motion render chapters in reading order without pinning. Each instance cleans up its own GSAP context on unmount.
  */
 export type ScrollExperienceContent = {
   ariaLabel: string;
@@ -150,7 +150,33 @@ const icons: Record< IconName, typeof MessageSquare> = {
 // before the scroll animation is initialized.
 const staticLayoutFix = `
 .af-experience.simple .viewport { height: auto; min-height: 0; overflow: visible; }
-.af-experience.simple .experience-footer { position: relative; left: auto; right: auto; bottom: auto; margin: 0 6%; padding: 24px 0 30px; }
+.af-experience.simple .experience-footer { position: relative; left: auto; right: auto; bottom: auto; margin: 0 6%; padding: 24px 0 30px; flex-wrap: wrap; }
+.af-experience:not(.simple) .viewport { min-height: 640px; }
+.af-experience[data-layout=phone]:not(.simple) .intro { top: 108px; }
+.af-experience[data-layout=phone]:not(.simple) .flow-copy { top: 28px; }
+.af-experience[data-layout=phone]:not(.simple) .chapter-nav { bottom: max(16px, env(safe-area-inset-bottom)); }
+.af-experience.simple .chapter-copy { max-width: 1600px; margin-inline: auto; }
+.af-experience.simple .intro { padding-top: 130px; }
+.af-experience.simple .intro-description { max-width: 640px; }
+.af-experience .intro-description, .af-experience .flow-description, .af-experience .flow-copy h2 { overflow-wrap: anywhere; }
+@media (max-width: 900px) {
+  .af-experience.simple .stage { overflow: clip; padding-bottom: 18px; }
+  .af-experience.simple .flow-panel { margin-inline: auto; }
+  .af-experience.simple .node strong { font-size: max(12px, calc(10px / var(--panel-scale, 1))); }
+  .af-experience.simple .node-icon svg { width: max(23px, calc(10px / var(--panel-scale, 1))); height: max(23px, calc(10px / var(--panel-scale, 1))); }
+  .af-experience.simple .panel-top strong { font-size: max(13px, calc(10px / var(--panel-scale, 1))); }
+}
+@media (max-width: 540px) {
+  .af-experience.simple .intro { padding: 110px 6% 40px; }
+  .af-experience.simple .intro h1 { font-size: clamp(35px, 10vw, 48px); letter-spacing: -1.8px; }
+  .af-experience.simple .intro .eyebrow { font-size: 8px; letter-spacing: 1.1px; flex-wrap: wrap; }
+  .af-experience.simple .flow-copy { margin-bottom: 24px; }
+  .af-experience.simple .flow-copy h2 { font-size: 29px; }
+  .af-experience.simple .panel-status, .af-experience.simple .panel-bottom > span:nth-child(2), .af-experience.simple .canvas-caption, .af-experience.simple .diagram-note { display: none; }
+  .af-experience.simple .panel-menu { margin-left: auto; }
+  .af-experience.simple .panel-bottom > span { font-size: max(9px, calc(8px / var(--panel-scale, 1))); }
+  .af-experience.simple .panel-bottom .run-mark { margin-left: auto; }
+}
 `;
 
 function WorkflowPanel({ chapter }: { chapter: WorkflowChapter }) {
@@ -475,10 +501,11 @@ export default function DimensionalWorkflowHero({ content, motion, accent, class
 
       media.add(
         {
-          motion: "(prefers-reduced-motion: no-preference)",
+          motion: "(prefers-reduced-motion: no-preference) and (min-height: 640px)",
+          cramped: "(max-width: 359px), (max-width: 600px) and (max-height: 639px)",
         },
         (context) => {
-          const animated = context.conditions?.motion;
+          const animated = context.conditions?.motion && !context.conditions?.cramped;
           element.classList.toggle("simple", !animated);
           if (!animated) return;
           fitScene();
@@ -726,7 +753,9 @@ export default function DimensionalWorkflowHero({ content, motion, accent, class
       // Browser viewport events provide a fallback while the existing rebuild
       // path preserves the playhead and recreates the same 3D poses.
       const browserResize = () => {
-        if (Math.abs(window.innerWidth - fittedWindowWidth) > 1 || Math.abs(window.innerHeight - fittedWindowHeight) > 1) scheduleRebuild();
+        const widthChanged = Math.abs(window.innerWidth - fittedWindowWidth) > 1;
+        const desktopHeightChanged = layout === "desktop" && Math.abs(window.innerHeight - fittedWindowHeight) > 1;
+        if (widthChanged || desktopHeightChanged) scheduleRebuild();
       };
       window.addEventListener("resize", browserResize);
       window.addEventListener("orientationchange", scheduleRebuild);

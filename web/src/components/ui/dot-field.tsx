@@ -11,7 +11,7 @@ import * as React from "react";
 /* ------------------------------------------------------------------ */
 
 export interface DotFieldProps extends Omit<React.HTMLAttributes<HTMLElement>, "title"> {
-  /** Headline drawn with dots. Also rendered as a real <h1> for screen readers. */
+  /** Headline drawn with dots. Also rendered as a real heading for screen readers. */
   headline: string;
   /** Small pill above the headline. */
   eyebrow?: React.ReactNode;
@@ -76,6 +76,19 @@ export const DotField = React.forwardRef<DotFieldHandle, DotFieldProps>(function
   const hintLabelRef = React.useRef<HTMLSpanElement>(null);
   const [ready, setReady] = React.useState(false);
   const readyRef = React.useRef(false);
+  const [environment, setEnvironment] = React.useState({ reduced: false, compact: false });
+  const [canvasFallback, setCanvasFallback] = React.useState(false);
+  const canScatter = scrollScatter && !environment.compact && !environment.reduced && !canvasFallback;
+
+  React.useEffect(() => {
+    const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const compact = window.matchMedia("(max-height: 600px)");
+    const update = () => setEnvironment({ reduced: motion.matches, compact: compact.matches });
+    update();
+    motion.addEventListener("change", update);
+    compact.addEventListener("change", update);
+    return () => { motion.removeEventListener("change", update); compact.removeEventListener("change", update); };
+  }, []);
 
   // everything the render loop needs lives in one mutable object
   const S = React.useRef({
@@ -94,12 +107,15 @@ export const DotField = React.forwardRef<DotFieldHandle, DotFieldProps>(function
   }), []);
 
   React.useEffect(() => {
-    const stage = stageRef.current!, cv = dotsRef.current!, gl = glowRef.current!;
-    const ctx = cv.getContext("2d")!, gtx = gl.getContext("2d")!;
-    if (!ctx || !gtx) { stage.classList.add("dot-field-fallback"); setReady(true); return; }
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const outer = outerRef.current, stage = stageRef.current, cv = dotsRef.current, gl = glowRef.current;
+    if (!outer || !stage || !cv || !gl) return;
+    const ctx = cv.getContext("2d"), gtx = gl.getContext("2d");
+    if (!ctx || !gtx) { stage.classList.add("dot-field-fallback"); setCanvasFallback(true); setReady(true); return; }
+    const reduce = environment.reduced;
     const s = S.current;
     let raf = 0, visible = false, started = false, alive = true, readyTimer = 0, previousFrame = 0;
+    // Refs can detach before passive-effect cleanup, and queued observers may still run.
+    const isActive = () => alive && outer.isConnected && stage.isConnected && outerRef.current === outer && stageRef.current === stage;
     if (reduce) { readyRef.current = true; setReady(true); return; }
     let fg = "#fff", frameNo = 0;
 
@@ -112,7 +128,7 @@ export const DotField = React.forwardRef<DotFieldHandle, DotFieldProps>(function
       c.width = W; c.height = H;
       const font = (px: number) => `${o.fontWeight} ${px}px ${o.fontFamily}`;
       const paragraphs = o.headline.split("\n");
-      let size = Math.min(W * 0.078, H * 0.14, 118), lines: string[] = [];
+      let size = Math.min(Math.max(32, W * 0.078), H * 0.14, 118), lines: string[] = [];
       for (;;) {
         g.font = font(size); lines = []; let cur = "";
         for (const paragraph of paragraphs) {
@@ -134,11 +150,15 @@ export const DotField = React.forwardRef<DotFieldHandle, DotFieldProps>(function
 
     /* one Float32Array, 10 slots per dot: x y vx vy homeX homeY textX textY delay isText */
     const build = () => {
+      if (!isActive()) return;
       const r = stage.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
       s.W = Math.max(1, Math.round(r.width)); s.H = Math.max(1, Math.round(r.height));
       for (const c of [cv, gl]) { c.width = s.W * dpr; c.height = s.H * dpr; }
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0); gtx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      const [GX, GY] = opts.current.grid, tgt = sample();
+      const [requestedX, requestedY] = opts.current.grid;
+      const baseX = Math.max(6, requestedX), baseY = Math.max(6, requestedY);
+      const density = Math.max(1, Math.sqrt((s.W * s.H) / (baseX * baseY * 12000)));
+      const GX = baseX * density, GY = baseY * density, tgt = sample();
       const cols = Math.ceil(s.W / GX) + 1, rows = Math.ceil(s.H / GY) + 1, cells = cols * rows, nText = tgt.length / 2;
       s.N = Math.max(cells, nText);
       const P = new Float32Array(s.N * 10);
@@ -160,6 +180,7 @@ export const DotField = React.forwardRef<DotFieldHandle, DotFieldProps>(function
     };
 
     const setCopy = () => {
+      if (!isActive()) return;
       const p = s.scrollP, show = readyRef.current;
       if (copyRef.current) copyRef.current.style.opacity = show ? String(Math.max(0, 1 - p * 1.6)) : "";
       if (hintRef.current && hintLabelRef.current && scrollHint) {
@@ -171,18 +192,19 @@ export const DotField = React.forwardRef<DotFieldHandle, DotFieldProps>(function
     };
 
     const restart = () => {
-      if (scrollScatter && s.scrollP > 0) outerRef.current?.scrollIntoView({ block: "start" });
+      if (!isActive()) return;
+      if (canScatter && s.scrollP > 0) outerRef.current?.scrollIntoView({ block: "start" });
       s.btnP = s.btnT = 0; s.kick = 0;
       readFg(); build(); s.t0 = performance.now();
       readyRef.current = false; setReady(false);
       window.clearTimeout(readyTimer);
-      readyTimer = window.setTimeout(() => { readyRef.current = true; setReady(true); setCopy(); opts.current.onReady?.(); }, reduce ? 0 : 1700);
+      readyTimer = window.setTimeout(() => { if (!isActive()) return; readyRef.current = true; setReady(true); setCopy(); opts.current.onReady?.(); }, 1700);
     };
     s.restart = restart;
 
     const frame = (now: number) => {
       raf = 0;
-      if (!alive) return;
+      if (!isActive()) return;
       if (visible) {
         const dt = previousFrame ? Math.min(2, Math.max(0.25, (now - previousFrame) / 16.667)) : 1;
         previousFrame = now;
@@ -248,13 +270,15 @@ export const DotField = React.forwardRef<DotFieldHandle, DotFieldProps>(function
 
     /* scroll progress of the whole section: 0 at the top, 1 after 70% of a screen */
     const onScroll = () => {
-      if (!scrollScatter) return;
-      const r = outerRef.current!.getBoundingClientRect();
+      if (!isActive()) return;
+      if (!canScatter) { s.scrollT = 0; return; }
+      const r = outer.getBoundingClientRect();
       const range = Math.max(1, r.height - stage.clientHeight);
       s.scrollT = Math.min(1, Math.max(0, (-r.top / range - 0.2) / 0.8));
     };
 
     const move = (e: PointerEvent) => {
+      if (!isActive() || e.pointerType === "touch") return;
       const r = stage.getBoundingClientRect();
       s.mouse.x = e.clientX - r.left; s.mouse.y = e.clientY - r.top; s.mouse.on = true;
       spotRef.current?.style.setProperty("--x", `${s.mouse.x}px`);
@@ -264,15 +288,17 @@ export const DotField = React.forwardRef<DotFieldHandle, DotFieldProps>(function
 
     let rt = 0;
     const ro = new ResizeObserver(() => {
+      if (!isActive()) return;
       window.clearTimeout(rt);
       rt = window.setTimeout(() => {
-        if (!alive) return;
+        if (!isActive()) return;
         const box = stage.getBoundingClientRect();
         if (Math.round(box.width) === s.W && Math.round(box.height) === s.H) return;
-        build(); if (started) s.t0 = performance.now() - 3000;
+        build(); onScroll(); if (started) s.t0 = performance.now() - 3000;
       }, 150);
     });
     const io = new IntersectionObserver(([e]) => {
+      if (!isActive() || !e) return;
       visible = e.isIntersecting;
       if (visible && !started) { started = true; restart(); onScroll(); }
       if (visible && !raf) { previousFrame = 0; raf = requestAnimationFrame(frame); }
@@ -287,13 +313,14 @@ export const DotField = React.forwardRef<DotFieldHandle, DotFieldProps>(function
       ? document.fonts.load(`${opts.current.fontWeight} 100px ${opts.current.fontFamily}`).catch(() => [])
       : Promise.resolve([]);
     fontReady.then(() => {
-      if (!alive) return;
+      if (!isActive()) return;
       build(); onScroll();
       ro.observe(stage); io.observe(stage);
     });
 
     return () => {
-      alive = false; cancelAnimationFrame(raf); window.clearTimeout(readyTimer); window.clearTimeout(rt);
+      alive = false; visible = false; cancelAnimationFrame(raf); window.clearTimeout(readyTimer); window.clearTimeout(rt);
+      if (s.restart === restart) s.restart = () => {};
       ro.disconnect(); io.disconnect();
       stage.removeEventListener("pointermove", move);
       stage.removeEventListener("pointerleave", leave);
@@ -301,7 +328,7 @@ export const DotField = React.forwardRef<DotFieldHandle, DotFieldProps>(function
     };
     // rebuild when the text or the grid changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [headline, fontFamily, fontWeight, grid[0], grid[1], scrollScatter]);
+  }, [headline, fontFamily, fontWeight, grid[0], grid[1], canScatter, environment.reduced]);
 
   const fade = `transition-[opacity,transform] duration-1000 [transition-timing-function:cubic-bezier(.2,.9,.25,1)] ${ready ? "translate-y-0 opacity-100" : "translate-y-2.5 opacity-0"}`;
 
@@ -309,7 +336,8 @@ export const DotField = React.forwardRef<DotFieldHandle, DotFieldProps>(function
     <section
       ref={outerRef}
       className={`dot-field relative w-full bg-background text-foreground ${className}`}
-      style={{ height: scrollScatter ? "calc(100svh + 160vh)" : undefined, ...style }}
+      data-static-scroll={!canScatter}
+      style={{ height: canScatter ? "calc(100svh + 160vh)" : undefined, ...style }}
       {...rest}
     >
       <div
@@ -334,14 +362,14 @@ export const DotField = React.forwardRef<DotFieldHandle, DotFieldProps>(function
 
         <div ref={copyRef} className="dot-field-copy pointer-events-none absolute inset-0">
           {eyebrow && (
-            <div className={`absolute inset-x-0 top-[12vh] flex justify-center ${fade}`}>
+            <div className={`dot-field-eyebrow absolute inset-x-0 top-[12vh] flex justify-center ${fade}`}>
               <span className="inline-flex h-[30px] items-center gap-2 rounded-full border border-border bg-muted/60 px-3 text-[13px] font-medium tracking-[-0.01em] text-muted-foreground backdrop-blur-md">
                 <i className="size-1.5 rounded-full" style={{ background: accent, boxShadow: `0 0 10px ${accent}` }} />
                 {eyebrow}
               </span>
             </div>
           )}
-          <div className="absolute inset-0 flex flex-col items-center justify-end px-5 pb-[max(17vh,110px)] text-center">
+          <div className="dot-field-actions-copy absolute inset-0 flex flex-col items-center justify-end px-5 pb-[max(17vh,110px)] text-center">
             {description && (
               <p className={`m-0 max-w-[600px] text-[17px] leading-[25px] tracking-[-0.02em] text-muted-foreground ${fade} delay-100`}>
                 {description}
@@ -351,7 +379,7 @@ export const DotField = React.forwardRef<DotFieldHandle, DotFieldProps>(function
           </div>
         </div>
 
-        {scrollScatter && scrollHint && (
+        {canScatter && scrollHint && (
           <div
             ref={hintRef}
             aria-hidden="true"
@@ -367,7 +395,18 @@ export const DotField = React.forwardRef<DotFieldHandle, DotFieldProps>(function
             <span ref={hintLabelRef}>{scrollHint.scatter}</span>
           </div>
         )}
-        <style>{`@keyframes dotfield-wheel{0%{transform:translateY(0);opacity:0}20%{opacity:1}70%{transform:translateY(10px);opacity:0}100%{opacity:0}}`}</style>
+        <style>{`
+          @keyframes dotfield-wheel{0%{transform:translateY(0);opacity:0}20%{opacity:1}70%{transform:translateY(10px);opacity:0}100%{opacity:0}}
+          .dot-field[data-static-scroll=true] .dot-field-stage{position:relative;height:max(580px,85svh);min-height:580px}
+          .dot-field .dot-field-eyebrow{padding-inline:20px}
+          .dot-field .dot-field-eyebrow>span{height:auto;min-height:30px;max-width:100%;padding-block:7px;text-align:center;line-height:1.5}
+          .dot-field .dot-field-eyebrow i{flex-shrink:0}
+          .dot-field .dot-field-actions-copy>div{max-width:100%;min-width:0}
+          .dot-field .dot-field-actions-copy>div>a,.dot-field .dot-field-actions-copy>div>button{max-width:100%;white-space:normal}
+          @media(max-width:380px){.dot-field .dot-field-eyebrow>span{letter-spacing:.35px!important;font-size:8px!important}.dot-field .dot-field-actions-copy{padding-inline:24px}}
+          @media(max-height:600px){.dot-field .dot-field-stage{position:relative}.dot-field .dot-field-eyebrow{top:45px}.dot-field .dot-field-actions-copy{padding-bottom:70px}}
+          @media(prefers-reduced-motion:reduce){.dot-field .dot-field-actions-copy{padding-bottom:80px}.dot-field .dot-field-eyebrow{top:50px}}
+        `}</style>
       </div>
     </section>
   );

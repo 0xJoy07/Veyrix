@@ -80,3 +80,20 @@ The inner pages share centered responsive containers from `src/documentation.css
 The reading rail follows the visible section while scrolling and supports smooth anchor jumps, keyboard focus, and reduced-motion preferences. Reference tables scroll within their own containers on narrow screens. Disclosures expose expanded state and keep collapsed content out of keyboard navigation. Route skeletons and the existing homepage scenes remain in place.
 
 Project Status is a documented repository snapshot, not live monitoring. Its counts are derived from 14 entries (6 implemented, 2 requiring live validation, 6 planned), not estimated completion percentages. The default Python suite was rerun on 9 November 2026: 31 passed and 1 opt-in PostgreSQL test skipped. Prior PostgreSQL verification is labeled separately from current tests; live Groq and MySQL validation remain outstanding.
+
+
+### Repository access and button design
+
+The shared header, homepage invitation, Quickstart source card, and both footer layouts link to the verified repository at `https://github.com/0xJoy07/Veyrix`. Architecture layer paths and Project Status evidence references open the corresponding GitHub source files. Repository URLs are centralized in `src/content/repository.ts`; `src/lib/repository.ts` resolves engineering references.
+
+`src/components/ui/button-1.tsx` retains the supplied seven-layer liquid artwork, adapted into the semantic `GitHubRepoButton` anchor. It uses the existing Framer Motion package, unique gradient IDs, and black/silver/blue/violet colors. Animation runs on hover or focus while visible, and stops for reduced motion.
+
+`src/components/ui/interactive-hover-button.tsx` implements the supplied expanding-dot and sliding-label treatment with real button and Router-link variants. Existing AntiMetal exports forward to this component for compatibility. Chapter navigation and Architecture playback retain their dedicated controls.
+
+### Responsive behavior
+
+`src/responsive.css` adds shared navigation, layout, terminal, source-link, and touch refinements. The navigation collapses below 1101px and supports Escape, outside-click dismissal, and focus restoration. Text wraps within its own container; wide reference tables retain contained horizontal scrolling. Terminal and playback controls have 44px minimum targets.
+
+Architecture presents a vertical workflow on screens up to 720px wide. The homepage retains its animated scene on roomy displays and uses full reading-order chapters below 360px wide or 640px high. Dot-field pinning is disabled on short screens, and the halftone footer grows with its content. Reduced-motion preferences remain supported.
+
+Browser checks covered 320px, 390px, 768px, 1024px, 1280px, and 1920px widths, plus an 844 × 390 landscape viewport. Tested routes had no page-level horizontal overflow. Navigation, chapter selection, terminal reveal, prerequisite checks, Status filters, and Architecture controls were exercised.

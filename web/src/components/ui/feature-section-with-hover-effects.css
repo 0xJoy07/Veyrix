@@ -17,3 +17,5 @@
 @media(max-width:1100px){.veyrix-feature-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.veyrix-hover-feature:nth-last-child(-n+4){border-bottom:1px solid #262626}.veyrix-hover-feature:nth-last-child(-n+2){border-bottom:0}}
 @media(max-width:600px){.veyrix-feature-grid{grid-template-columns:1fr}.veyrix-hover-feature{padding:28px 0}.veyrix-hover-feature:nth-last-child(-n+2){border-bottom:1px solid #262626}.veyrix-hover-feature:last-child{border-bottom:0}.veyrix-hover-feature .feature-description{max-width:none}.veyrix-hover-feature .feature-icon{margin-bottom:18px}}
 @media(prefers-reduced-motion:reduce){.feature-hover-wash,.feature-icon,.feature-accent-bar,.feature-title-text{transition:none!important}.veyrix-hover-feature:hover .feature-title-text,.veyrix-hover-feature:hover .feature-accent-bar{transform:none}}
+
+@media(max-width:380px){.veyrix-hover-feature .feature-icon,.veyrix-hover-feature .feature-title,.veyrix-hover-feature .feature-description{padding-inline:20px}.veyrix-hover-feature .feature-title{font-size:15px}.veyrix-hover-feature{padding-block:24px}}

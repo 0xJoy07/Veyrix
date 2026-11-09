@@ -1,8 +1,10 @@
+import { GitHubRepoButton } from '@/components/ui/github-repo-button';
+import { REPOSITORY_URL } from '@/content/repository';
 import HalftoneWordmarkFooter from '@/components/ui/halftone-wordmark-footer';
 import { AntiMetalLink } from '@/components/ui/anti-metal-button';
 import { useEffect, useRef, useState } from 'react';
 import { BrowserRouter, Link, Navigate, NavLink, Outlet, Route, Routes, useLocation } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
+import { Github, Menu, X } from 'lucide-react';
 import RoutePage from '@/components/route-page';
 const loadHome = () => import('@/pages/Home');
 const loadOverview = () => import('@/pages/Overview');
@@ -14,6 +16,8 @@ function Layout() {
   const { pathname } = useLocation();
   const [menu, setMenu] = useState(false);
   const main = useRef<HTMLElement>(null);
+  const header = useRef<HTMLElement>(null);
+  const menuToggle = useRef<HTMLButtonElement>(null);
   const previousPath = useRef(pathname);
   useEffect(() => {
     document.title = `Veyrix — ${titles[pathname] ?? 'Page not found'}`;
@@ -22,9 +26,28 @@ function Layout() {
     if (previousPath.current !== pathname) main.current?.focus({preventScroll:true});
     previousPath.current = pathname;
   }, [pathname]);
+  useEffect(() => {
+    if (!menu) return;
+    const dismiss = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') { setMenu(false); menuToggle.current?.focus(); }
+    };
+    const outside = (event: PointerEvent) => {
+      if (!header.current?.contains(event.target as Node)) setMenu(false);
+    };
+    const desktop = window.matchMedia('(min-width: 1101px)');
+    const resize = () => { if (desktop.matches) setMenu(false); };
+    document.addEventListener('keydown', dismiss);
+    document.addEventListener('pointerdown', outside);
+    desktop.addEventListener('change', resize);
+    return () => {
+      document.removeEventListener('keydown', dismiss);
+      document.removeEventListener('pointerdown', outside);
+      desktop.removeEventListener('change', resize);
+    };
+  }, [menu]);
   return <div className={pathname === '/' ? 'home-layout' : 'inner-layout'}>
     <a className="page-skip" href="#main-content">Skip to content</a>
-    <header className="site-header"><Link className="brand" to="/" aria-label="Veyrix home"><span className="brand-symbol">V</span>veyrix<span className="brand-divider"/><span className="brand-docs">DOCUMENTATION</span></Link><button className="menu-toggle" aria-label={menu ? 'Close navigation' : 'Open navigation'} aria-expanded={menu} aria-controls="main-nav" onClick={() => setMenu(!menu)}>{menu ? <X/> : <Menu/>}</button><nav id="main-nav" className={menu ? 'main-nav open' : 'main-nav'} aria-label="Main navigation" onClick={() => setMenu(false)}><NavLink to="/" end>Home</NavLink><NavLink to="/docs">Documentation</NavLink><NavLink to="/architecture">Architecture</NavLink><NavLink to="/status">Project status</NavLink><AntiMetalLink compact to="/docs/quickstart">Get started</AntiMetalLink></nav></header>
+    <header className="site-header" ref={header}><Link className="brand" to="/" aria-label="Veyrix home"><span className="brand-symbol">V</span>veyrix<span className="brand-divider"/><span className="brand-docs">GIVE YOUR ONLINE BUSINESS LIFE</span></Link><button ref={menuToggle} type="button" className="menu-toggle" aria-label={menu ? 'Close navigation' : 'Open navigation'} aria-expanded={menu} aria-controls="main-nav" onClick={() => setMenu(!menu)}>{menu ? <X/> : <Menu/>}</button><nav id="main-nav" className={menu ? 'main-nav open' : 'main-nav'} aria-label="Main navigation" onClick={() => setMenu(false)}><NavLink to="/" end>Home</NavLink><NavLink to="/docs">Documentation</NavLink><NavLink to="/architecture">Architecture</NavLink><NavLink to="/status">Project status</NavLink><div className="nav-actions"><GitHubRepoButton compact/><AntiMetalLink compact to="/docs/quickstart">Get started</AntiMetalLink></div></nav></header>
     <main id="main-content" tabIndex={-1} ref={main}><Outlet/></main>
     {pathname === '/' ? <HalftoneWordmarkFooter
       className="veyrix-wordmark-footer"
@@ -38,7 +61,7 @@ function Layout() {
       radius={90}
       height="clamp(560px, 44vw, 800px)"
       fontFamily="Inter Variable, sans-serif"
-    /> : <footer className="site-footer"><Link className="brand" to="/"><span className="brand-symbol">V</span>veyrix</Link><p>Conversational commerce, connected to your business.</p><Link to="/status">Local prototype <span className="footer-dot"/></Link></footer>}
+    /> : <footer className="site-footer"><Link className="brand" to="/"><span className="brand-symbol">V</span>veyrix</Link><p>Conversational commerce, connected to your business.</p><div className="site-footer-links"><a href={REPOSITORY_URL} target="_blank" rel="noopener noreferrer" aria-label="Veyrix repository on GitHub (opens in a new tab)"><Github size={15} aria-hidden="true"/>GitHub repository</a><Link to="/status">Local prototype <span className="footer-dot"/></Link></div></footer>}
   </div>;
 }
 function DocsLayout() { return <><nav className="docs-nav" aria-label="Documentation sections"><NavLink end to="/docs">Overview</NavLink><NavLink to="/docs/quickstart">Quickstart</NavLink></nav><Outlet/></>; }

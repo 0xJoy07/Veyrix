@@ -11,6 +11,6 @@
 @media(prefers-reduced-motion:reduce){
   .veyrix-marquee{mask-image:none!important;-webkit-mask-image:none!important}
   .veyrix-marquee .marquee-track{animation:none;transform:none;min-width:0;width:100%}
-  .veyrix-marquee .marquee-group{flex-wrap:wrap;gap:16px;justify-content:center}
+  .veyrix-marquee .marquee-group{flex:1 1 100%;min-width:0;max-width:100%;flex-wrap:wrap;gap:16px;justify-content:center}
   .veyrix-marquee .marquee-copy{display:none}
 }

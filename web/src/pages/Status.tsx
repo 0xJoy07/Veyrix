@@ -1,3 +1,4 @@
+import { pythonSourceUrl } from '@/lib/repository';
 import { useId, useMemo, useRef, useState } from 'react';
 import { ArrowRight, Check, CheckCircle2, ChevronDown, CircleDashed, FlaskConical, Search, ShieldCheck, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -151,7 +152,7 @@ function CapabilityRow({ item }: { item: Capability }) {
     </button></h3>
     <div className="status-capability-panel" id={id} role="region" aria-labelledby={`${id}-trigger`} aria-hidden={!open} inert={!open}><div><div className="status-capability-details">
       <dl><div><dt>Evidence in the repository</dt><dd>{item.evidence}</dd></div><div><dt>Current boundary</dt><dd>{item.boundary}</dd></div><div><dt>Next acceptance check</dt><dd>{item.next}</dd></div></dl>
-      <div className="status-evidence-paths"><span>Source references · relative to main_setup/python</span>{item.paths.map(path => <code key={path}>{path}</code>)}</div>
+      <div className="status-evidence-paths"><span>Source references · relative to main_setup/python</span>{item.paths.map(path => <a key={path} href={pythonSourceUrl(path)} target="_blank" rel="noopener noreferrer" aria-label={`${path} on GitHub (opens in a new tab)`}><code>{path}</code></a>)}</div>
     </div></div></div>
   </article>;
 }
