@@ -8,6 +8,7 @@ from config import Config
 from security.credential_store import CredentialStore
 from setup_ui.controller import test_database, initialize_database, import_file
 from db.importers.files import read_file
+from setup_ui.errors import describe_error
 
 class SetupApp:
     def __init__(self, root):
@@ -51,9 +52,10 @@ class SetupApp:
         self.field(database, 'ssl_ca', 'TLS CA certificate path (optional)', self.config.ssl_ca)
         self.field(database, 'product_table', 'Product table', self.config.product_table)
         self.field(database, 'mapping', 'Catalog mapping JSON (empty = standard schema)', json.dumps(self.config.mapping))
-        ttk.Label(database, text='Example: {"id":"sku","name":"title","price":"selling_price","stock":"quantity"}\nCustom mappings enable catalog reads only. Initialize only a new, empty database.\nCSV/JSON users: choose a new SQLite file, initialize it, then use the Import tab.', wraplength=750).grid(row=11, column=0, columnspan=3, sticky='w', pady=10)
+        self.field(database, 'database_schema', 'PostgreSQL schema', self.config.database_schema)
+        ttk.Label(database, text='Example: {"id":"sku","name":"title","price":"selling_price","stock":"quantity"}\nCustom mappings enable catalog reads only. Initialize only a new, empty database or schema.\nCSV/JSON users: choose a new SQLite file, initialize it, then use the Import tab.', wraplength=750).grid(row=12, column=0, columnspan=3, sticky='w', pady=10)
         buttons = ttk.Frame(database)
-        buttons.grid(row=12, column=0, columnspan=3, sticky='w')
+        buttons.grid(row=13, column=0, columnspan=3, sticky='w')
         ttk.Button(buttons, text='Test connection and inspect schema', command=self.test_db).pack(side='left', padx=4)
         ttk.Button(buttons, text='Initialize empty database', command=self.initialize).pack(side='left', padx=4)
 
@@ -84,7 +86,7 @@ class SetupApp:
         data = {key: value.get().strip() for key, value in self.fields.items()}
         config = Config(**{key: data[key] for key in ('store_name', 'currency', 'model', 'source', 'database', 'host', 'username', 'sslmode', 'ssl_ca', 'product_table', 'policy')},
             port=int(data['port']), delivery_minor=int(data['delivery_minor']), session_seconds=int(data['session_seconds']),
-            mapping=json.loads(data['mapping'] or '{}'), profile=self.config.profile).validate()
+            mapping=json.loads(data['mapping'] or '{}'), profile=self.config.profile, database_schema=data['database_schema']).validate()
         if not isinstance(config.mapping, dict):
             raise ValueError('Mapping must be a JSON object.')
         secrets = CredentialStore(config.profile)
@@ -102,8 +104,8 @@ class SetupApp:
                 self.events.put(('ok', operation()))
             except ValueError as exc:
                 self.events.put(('error', str(exc)))
-            except Exception:
-                self.events.put(('error', 'Operation failed. Check credentials, host, TLS settings, schema, file format, and installed dependencies.'))
+            except Exception as exc:
+                self.events.put(('error', describe_error(exc)))
         threading.Thread(target=work, daemon=True).start()
 
     def poll(self):

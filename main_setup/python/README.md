@@ -62,6 +62,32 @@ Online/offline is a hosting choice, not a different database format. Groq always
 requires internet. PostgreSQL/MySQL servers must be installed/provisioned separately.
 This application does not automatically convert or modify arbitrary business schemas.
 
+### Supabase connections
+
+Choose `postgresql` as the database engine and `postgres` as the database name.
+Enter the password as plain text in the password field (for example, `%40` in a
+connection URI means `@` in this field). Keep TLS set to `require`.
+
+Supabase direct hosts (`db.<project-ref>.supabase.co`) normally require IPv6.
+If hostname resolution fails or the network is unreachable on an IPv4-only
+computer, open the project's **Connect > Session pooler** settings. Copy that
+connection's exact host and username, use port `5432` and database `postgres`.
+The pooler username includes the project reference; it is not just `postgres`.
+Do not guess the pooler's region or replace the hostname with a fixed IP address.
+See [Supabase's connection guide](https://supabase.com/docs/guides/database/connecting-to-postgres).
+
+Restart setup after updating the application to see the specific error guidance.
+Test the connection before initializing or importing any data.
+
+The **PostgreSQL schema** field defaults to `public`. Select an existing separate
+schema (for example, `shopping_agent`) to keep application tables separate from
+an existing catalog. Connections use only the selected schema and reject a
+missing schema, preventing accidental fallback to public. Session pooling is
+required for this session-scoped setting; do not use transaction pooling.
+Initialization checks the selected schema for existing tables.
+If catalog records are copied between schemas, the copy is independent: later
+product, review and stock changes are not synchronized with the source catalog.
+
 Connection testing displays table/column names and sample products. A custom mapping
 maps canonical fields to existing columns, for example:
 

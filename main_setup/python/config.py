@@ -1,5 +1,6 @@
 """Non-secret setup configuration. Secrets are held separately."""
 import json
+import re
 from dataclasses import dataclass, asdict, field
 from pathlib import Path
 
@@ -18,6 +19,7 @@ class Config:
     sslmode: str = 'require'
     ssl_ca: str = ''
     product_table: str = 'products'
+    database_schema: str = 'public'
     mapping: dict = field(default_factory=dict)
     delivery_minor: int = 0
     policy: str = 'Pay on delivery only. Cancellation allowed before dispatch.'
@@ -25,6 +27,8 @@ class Config:
     profile: str = 'default'
 
     def validate(self):
+        if not isinstance(self.database_schema, str) or not re.fullmatch(r'[a-z_][a-z0-9_]{0,62}', self.database_schema):
+            raise ValueError('Schema must be a lowercase PostgreSQL identifier.')
         if self.source not in ('sqlite', 'postgresql', 'mysql'):
             raise ValueError('Choose SQLite, PostgreSQL, or MySQL.')
         if self.sslmode not in ('require', 'verify-full', 'disable'):

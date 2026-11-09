@@ -11,6 +11,16 @@ def test_config_no_secrets(tmp_path):
     assert Config.load(path).source == 'sqlite'
     assert 'password' not in path.read_text() and 'api_key' not in path.read_text()
 
+@pytest.mark.parametrize('schema', ['', 'public,other', 'foo;DROP SCHEMA public', 'UPPER', 'a'*64])
+def test_invalid_schema_rejected(schema):
+    with pytest.raises(ValueError, match='Schema'):
+        Config(database_schema=schema).validate()
+
+def test_schema_round_trip(tmp_path):
+    path = tmp_path / 'config.json'
+    Config(database_schema='shopping_agent').save(path)
+    assert Config.load(path).database_schema == 'shopping_agent'
+
 def test_never_initialize_existing(runtime):
     with pytest.raises(ValueError):
         initialize(runtime.engine)

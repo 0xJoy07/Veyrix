@@ -22,6 +22,22 @@ def connect(config, secrets):
         args['ssl'] = {'check_hostname': True}
         if config.ssl_ca:
             args['ssl']['ca'] = config.ssl_ca
-    return create_engine(URL.create(driver, username=config.username, password=secrets.get('database_password'),
+    engine = create_engine(URL.create(driver, username=config.username, password=secrets.get('database_password'),
         host=config.host, port=config.port, database=config.database), connect_args=args,
         pool_pre_ping=True, hide_parameters=True)
+    if config.source == 'postgresql':
+        @event.listens_for(engine, 'connect', insert=True)
+        def select_schema(connection, _):
+            # Session poolers preserve this setting. Commit it outside transactions
+            # so rollback cannot silently send later operations to public.
+            previous = connection.autocommit
+            connection.autocommit = True
+            try:
+                with connection.cursor() as cursor:
+                    cursor.execute('SELECT 1 FROM pg_namespace WHERE nspname = %s', (config.database_schema,))
+                    if cursor.fetchone() is None:
+                        raise ValueError('Selected PostgreSQL schema does not exist. Create it before connecting.')
+                    cursor.execute('SELECT set_config(%s, %s, false)', ('search_path', config.database_schema))
+            finally:
+                connection.autocommit = previous
+    return engine
