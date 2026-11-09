@@ -8,7 +8,7 @@ for customer conversations; it is not a public authenticated web service.
 ## Install and launch
 
 Use Python 3.12 with Tk support (the standard python.org Windows installer includes
-Tkinter). From `server/python`:
+Tkinter). From `main_setup/python`:
 
 ```powershell
 python -m venv .venv

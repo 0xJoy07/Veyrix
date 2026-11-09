@@ -1,0 +1,197 @@
+/* Project Status: a scoped delivery register, separate from the reading guides. */
+.project-status-page {
+  --status-border: #28282b;
+  --status-muted: #a0a0a8;
+  --status-surface: #080809;
+  --status-mint: #9cdbc3;
+  --status-amber: #e6c58f;
+  --status-violet: #b6acf0;
+}
+.project-status-page .status-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 310px;
+  align-items: center;
+  gap: 72px;
+}
+.status-hero > div > p:not(.kicker) { max-width: 650px; }
+.status-snapshot-note { display: flex; align-items: flex-start; gap: 10px; margin-top: 28px; color: #c2c2c7; font-size: 11px; line-height: 1.8; }
+.status-snapshot-note > span:first-child { width: 6px; height: 6px; border-radius: 50%; background: var(--status-mint); margin-top: 6px; flex-shrink: 0; }
+.status-snapshot-note small { font-size: 11px; color: #85858c; }
+.status-release-card { padding: 27px; border: 1px solid var(--status-border); border-radius: 15px; background: radial-gradient(ellipse at top right, #18211e70, transparent 75%), #080909; }
+.status-release-card > svg { display: block; color: var(--status-mint); margin: 24px 0 18px; }
+.status-release-card > strong { font-size: 21px; font-weight: 550; letter-spacing: -.5px; }
+.status-release-card > p { font-size: 12px; line-height: 1.75; margin: 12px 0 24px; color: #a8aaa9; }
+.status-release-card > div { display: grid; gap: 6px; border-top: 1px solid var(--status-border); padding-top: 18px; font-size: 11px; }
+.status-release-card > div > span { color: #8f9391; }
+.status-release-card b { font-weight: 500; color: #d1d5d3; }
+.status-eyebrow { display: block; font-size: 9px; line-height: 1.5; text-transform: uppercase; letter-spacing: 1.6px; color: #99999f; margin-bottom: 15px; }
+.status-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.status-summary-card { position: relative; text-align: left; color: #eeeef0; border: 1px solid var(--status-border); background: var(--status-surface); border-radius: 12px; padding: 25px; transition: border-color 220ms ease, background-color 220ms ease, transform 250ms cubic-bezier(.22,1,.36,1); }
+.status-summary-card:hover { transform: translateY(-3px); background: #101012; border-color: #56565f; }
+.status-summary-card[aria-pressed="true"] { border-color: var(--card-accent); background: color-mix(in srgb, var(--card-accent) 6%, #080809); }
+.summary-implemented { --card-accent: var(--status-mint); }
+.summary-validation { --card-accent: var(--status-amber); }
+.summary-planned { --card-accent: var(--status-violet); }
+.status-summary-card > span:first-child { display: flex; align-items: center; gap: 10px; color: var(--card-accent); font-size: 12px; }
+.status-summary-card > strong { display: block; font-size: 42px; line-height: 1.1; font-weight: 500; letter-spacing: -2px; margin: 23px 0 12px; }
+.status-summary-card > small { display: block; font-size: 11px; line-height: 1.65; color: #9b9ba2; min-height: 36px; }
+.status-summary-action { display: flex; align-items: center; gap: 9px; font-size: 10px; color: #b8b8c0; margin-top: 20px; }
+.status-summary-action svg { transition: transform 250ms cubic-bezier(.22,1,.36,1); }
+.status-summary-card:hover .status-summary-action svg { transform: translateX(3px); }
+.status-count-note { color: #85858d; font-size: 10px; margin: 15px 0 0; }
+.status-section { padding: 72px 0 0; }
+.status-section-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 28px; margin-bottom: 28px; }
+.project-status-page .status-section-heading h2 { font-size: clamp(23px, 2.3vw, 30px); letter-spacing: -.8px; line-height: 1.25; margin: 0 0 13px; font-weight: 500; }
+.status-section-heading p { font-size: 13px; max-width: 710px; margin: 0; }
+.status-section-index { font-size: 10px; color: #88888e; flex-shrink: 0; margin-top: 34px; }
+.status-filter-panel { border: 1px solid var(--status-border); border-radius: 12px; background: #080809; padding: 18px; }
+.status-filter-top { display: flex; gap: 14px; }
+.status-search { display: flex; align-items: center; gap: 10px; padding: 0 13px; min-width: 0; flex: 1; height: 43px; background: #000; border: 1px solid #323236; border-radius: 7px; color: #88888f; }
+.status-search:focus-within { border-color: #b3a9df; outline: 1px solid #b3a9df; }
+.status-search input { flex: 1; min-width: 0; width: 100%; border: 0; outline: 0; background: transparent; color: #dddde3; font: inherit; font-size: 12px; }
+.status-search input::placeholder { color: #85858c; }
+.status-search input::-webkit-search-cancel-button { display: none; }
+.status-search > button { display: grid; place-items: center; background: transparent; border: 0; color: #aaaab2; width: 26px; height: 28px; padding: 0; }
+.status-domain { display: flex; align-items: center; gap: 10px; font-size: 11px; color: #9e9ea6; }
+.status-domain select { height: 43px; min-width: 145px; border: 1px solid #323236; border-radius: 7px; padding: 0 12px; font: inherit; font-size: 12px; color: #d8d8df; background: #000; }
+.status-domain select:focus-visible { outline: 2px solid #b3a9df; outline-offset: 3px; }
+.status-filter-bottom { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 15px; }
+.status-filter-pills { display: flex; flex-wrap: wrap; gap: 7px; }
+.status-filter-pills button { display: flex; align-items: center; gap: 7px; border: 1px solid transparent; border-radius: 6px; padding: 8px 10px; background: transparent; color: #9999a2; font-size: 11px; transition: border-color 200ms ease, color 200ms ease, background-color 200ms ease; }
+.status-filter-pills button:hover { color: #f0f0f4; background: #141417; }
+.status-filter-pills button[aria-pressed="true"] { border-color: #424248; color: #ededf2; background: #1a1a1e; }
+.status-filter-pills button > span { font-size: 9px; color: #9a9aa4; }
+.status-reset { border: 0; background: transparent; color: #bebec6; font-size: 10px; padding: 8px; white-space: nowrap; }
+.status-reset:disabled { opacity: .35; cursor: default; }
+.status-reset:not(:disabled):hover { color: #fff; text-decoration: underline; text-underline-offset: 4px; }
+.status-results-count { font-size: 11px; color: #8c8c96; margin: 19px 0 12px; min-height: 20px; }
+.status-capability-list { border-top: 1px solid var(--status-border); }
+.status-capability { border-bottom: 1px solid var(--status-border); background: #000; transition: background-color 220ms ease; }
+.status-capability:hover { background: #070708; }
+.status-capability[data-open="true"] { background: #080809; }
+.project-status-page .status-capability h3 { font-size: inherit; font-weight: inherit; letter-spacing: normal; line-height: 1.5; margin: 0; }
+.status-capability-trigger { display: flex; width: 100%; text-align: left; align-items: center; gap: 20px; padding: 22px 18px; background: none; border: 0; color: #dcdce1; }
+.status-capability-trigger:focus-visible { outline-offset: -3px; }
+.status-capability-copy { flex: 1; min-width: 0; display: grid; gap: 7px; }
+.status-capability-copy small { text-transform: uppercase; letter-spacing: 1.25px; font-size: 9px; color: #85858f; }
+.status-capability-copy strong { font-size: 14px; font-weight: 550; letter-spacing: -.15px; }
+.status-capability-copy > span { font-size: 12px; line-height: 1.65; font-weight: 400; color: #9696a0; max-width: 680px; }
+.delivery-badge { display: inline-flex; align-items: center; gap: 6px; width: max-content; max-width: 100%; flex-shrink: 0; white-space: nowrap; border: 1px solid color-mix(in srgb, currentColor 22%, transparent); border-radius: 20px; padding: 5px 9px; font-size: 9px; font-weight: 500; line-height: 1.35; }
+.delivery-badge i { width: 4px; height: 4px; border-radius: 50%; background: currentColor; }
+.delivery-implemented { color: var(--status-mint); }
+.delivery-validation { color: var(--status-amber); }
+.delivery-planned { color: var(--status-violet); }
+.status-capability-chevron { flex-shrink: 0; color: #7d7d88; transition: transform 250ms cubic-bezier(.22,1,.36,1); }
+.status-capability[data-open="true"] .status-capability-chevron { transform: rotate(180deg); }
+.status-capability-panel { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 250ms cubic-bezier(.22,1,.36,1); }
+.status-capability[data-open="true"] .status-capability-panel { grid-template-rows: 1fr; }
+.status-capability-panel > div { overflow: hidden; }
+.status-capability-details { padding: 0 26px 26px; }
+.status-capability-details dl { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 26px; border-top: 1px solid #26262c; padding-top: 22px; margin: 0; }
+.status-capability-details dt { color: #d1d1d8; font-size: 11px; font-weight: 500; margin-bottom: 10px; }
+.status-capability-details dd { color: #9898a2; font-size: 12px; line-height: 1.8; margin: 0; }
+.status-evidence-paths { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 22px; }
+.status-evidence-paths > span { flex-basis: 100%; font-size: 9px; color: #777783; margin-bottom: 4px; }
+.status-evidence-paths code { border: 1px solid #26262d; background: #111114; padding: 5px 7px; border-radius: 4px; font-size: 9px; line-height: 1.5; color: #aaaab8; overflow-wrap: anywhere; }
+.status-empty { display: flex; align-items: center; flex-direction: column; padding: 55px 20px; text-align: center; }
+.status-empty > svg { color: #888695; margin-bottom: 19px; }
+.project-status-page .status-empty h3 { font-size: 18px; margin: 0 0 12px; }
+.status-empty p { max-width: 400px; font-size: 12px; }
+.status-empty button { display: inline-flex; align-items: center; gap: 10px; background: #161519; color: #d3cedf; border: 1px solid #39353f; border-radius: 7px; padding: 10px 14px; font-size: 11px; }
+.status-test-result { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 38px; padding: 24px; border: 1px solid #2a3831; border-radius: 10px; background: linear-gradient(110deg,#111a15,#060807); margin-bottom: 24px; }
+.status-test-result > span { display: grid; grid-template-columns: auto auto; align-items: center; gap: 9px 12px; color: var(--status-mint); }
+.status-test-result > span > strong { font-size: 24px; letter-spacing: -.8px; font-weight: 500; }
+.status-test-result > span > span { grid-column: 2; font-size: 10px; color: #9daca4; }
+.status-test-result > p { font-size: 12px; line-height: 1.75; color: #a4afa9; margin: 0; }
+.status-verification-wrap { overflow-x: auto; border: 1px solid var(--status-border); border-radius: 10px; }
+.status-verification-table { width: 100%; min-width: 680px; border-collapse: collapse; text-align: left; font-size: 12px; }
+.status-verification-table th, .status-verification-table td { padding: 19px 22px; border-bottom: 1px solid var(--status-border); vertical-align: top; line-height: 1.75; }
+.status-verification-table thead th { font-weight: 500; font-size: 10px; color: #9898a3; background: #0d0d10; }
+.status-verification-table tbody th { font-weight: 500; color: #d3d3db; width: 25%; }
+.status-verification-table tbody td { color: #9a9aa5; width: 37.5%; }
+.status-verification-table tr:last-child th, .status-verification-table tr:last-child td { border-bottom: 0; }
+.status-verification-table tbody tr:hover { background: #08080b; }
+.verification-dot { display: inline-block; width: 5px; height: 5px; border-radius: 50%; margin: 0 8px 2px 0; }
+.verification-dot.verified { background: var(--status-mint); }
+.verification-dot.recorded { background: var(--status-violet); }
+.verification-dot.pending { background: var(--status-amber); }
+.status-milestones { border-top: 1px solid var(--status-border); }
+.status-milestones .doc-disclosure { border-bottom: 1px solid var(--status-border); }
+.status-milestones .t-acc-head { padding-block: 24px; }
+.status-milestone-state { font-size: 9px; font-weight: 400; color: #9995ac; margin-left: auto; white-space: nowrap; }
+.status-milestones ul { list-style: none; padding: 0; margin: 18px 0 0; display: grid; gap: 12px; }
+.status-milestones li { display: flex; align-items: flex-start; gap: 11px; color: #a5a5af; font-size: 12px; line-height: 1.8; }
+.status-milestones li > svg { color: #9991bf; flex-shrink: 0; margin-top: 4px; }
+.status-scope-note { display: grid; grid-template-columns: 1fr 1.15fr; gap: 16px 60px; margin-top: 80px; padding-top: 35px; border-top: 1px solid var(--status-border); }
+.project-status-page .status-scope-note h2 { font-size: 24px; letter-spacing: -.6px; line-height: 1.3; max-width: 320px; margin: 0; }
+.status-scope-note > p { font-size: 12px; color: #9e9ea9; margin: 0; }
+.status-scope-note > a { display: inline-flex; align-items: center; gap: 12px; grid-column: 2; width: fit-content; font-size: 11px; color: #c5bedc; padding-block: 6px; }
+.status-scope-note > a:hover { color: #fff; }
+.status-scope-note > a svg { transition: transform 250ms cubic-bezier(.22,1,.36,1); }
+.status-scope-note > a:hover svg { transform: translateX(4px); }
+
+@media (max-width: 1050px) {
+  .project-status-page .status-hero { gap: 35px; grid-template-columns: minmax(0,1fr) 270px; }
+  .status-summary-card { padding: 21px; }
+  .status-capability-details dl { gap: 20px; }
+  .status-filter-bottom { align-items: flex-start; }
+  .status-filter-pills { gap: 4px; }
+  .status-filter-pills button { padding: 8px; font-size: 10px; }
+}
+@media (max-width: 800px) {
+  .project-status-page .status-hero { grid-template-columns: 1fr; gap: 28px; }
+  .status-release-card { display: grid; grid-template-columns: auto 1fr; gap: 8px 18px; padding: 23px; }
+  .status-release-card > .status-eyebrow { grid-column: 1 / -1; margin-bottom: 10px; }
+  .status-release-card > svg { margin: 3px 0 0; grid-row: span 2; }
+  .status-release-card > strong { font-size: 18px; }
+  .status-release-card > p { margin: 0; }
+  .status-release-card > div { grid-column: 1 / -1; margin-top: 10px; padding-top: 15px; }
+  .status-summary { gap: 10px; }
+  .status-summary-card { padding: 18px; }
+  .status-summary-card > span:first-child { font-size: 10px; gap: 7px; }
+  .status-summary-card > span:first-child svg { width: 15px; }
+  .status-summary-card > strong { font-size: 36px; }
+  .status-summary-card > small { font-size: 10px; }
+  .status-capability-trigger { gap: 12px; padding: 21px 12px; }
+  .status-capability-details { padding-inline: 18px; }
+  .status-capability-details dl { grid-template-columns: 1fr; gap: 19px; }
+  .status-capability-details dt { margin-bottom: 6px; }
+  .status-scope-note { gap: 18px 30px; }
+}
+@media (max-width: 600px) {
+  .status-summary { grid-template-columns: 1fr; gap: 10px; }
+  .status-summary-card { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px 18px; padding: 18px 20px; }
+  .status-summary-card > span:first-child { font-size: 12px; }
+  .status-summary-card > strong { grid-column: 2; grid-row: 1 / span 3; align-self: center; margin: 0; font-size: 36px; }
+  .status-summary-card > small { min-height: 0; font-size: 11px; }
+  .status-summary-action { margin-top: 4px; }
+  .status-section { padding-top: 48px; }
+  .status-section-heading { gap: 15px; }
+  .status-section-index { display: none; }
+  .status-filter-panel { padding: 13px; }
+  .status-filter-top { flex-direction: column; }
+  .status-search { flex: auto; }
+  .status-domain { justify-content: space-between; }
+  .status-domain select { flex: 1; }
+  .status-filter-bottom { flex-direction: column; gap: 8px; }
+  .status-filter-pills { gap: 5px; }
+  .status-filter-pills button { font-size: 10px; padding: 8px; }
+  .status-reset { padding-left: 0; }
+  .status-capability-trigger { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 12px; padding-inline: 10px; }
+  .status-capability-copy { grid-column: 1; grid-row: 1; }
+  .status-capability-copy strong { font-size: 13px; }
+  .status-capability-copy > span { font-size: 11px; }
+  .status-capability-trigger > .delivery-badge { grid-column: 1; grid-row: 2; }
+  .status-capability-chevron { grid-column: 2; grid-row: 1 / span 2; }
+  .status-test-result { grid-template-columns: 1fr; gap: 18px; padding: 21px; }
+  .status-test-result > span { width: fit-content; }
+  .status-milestone-state { display: none; }
+  .status-scope-note { grid-template-columns: 1fr; gap: 19px; margin-top: 48px; }
+  .status-scope-note > a { grid-column: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .status-summary-card, .status-summary-action svg, .status-filter-pills button,
+  .status-capability, .status-capability-chevron, .status-capability-panel,
+  .status-scope-note > a svg { transition: none; }
+  .status-summary-card:hover { transform: none; }
+}

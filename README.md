@@ -9,12 +9,14 @@ pay-on-delivery orders, and cancel eligible orders through the local CLI.
 
 ## Repository layout
 
-- `server/python/`: working agent backend, Tkinter setup, database connectors,
+- `main_setup/python/`: working agent backend, Tkinter setup, database connectors,
   CSV/JSON imports, session memory, order services, and automated tests.
-- `server/node/`: Express/TypeScript API scaffold.
-- `client/web/`: Next.js customer-interface scaffold.
+- `main_setup/node/`: Express/TypeScript API scaffold.
+- `main_setup/client/web/`: Next.js customer-interface scaffold.
+- `web/`: standalone React documentation website with Overview, Quickstart, Architecture, and Project Status routes.
 
-The web and Express scaffolds are not yet connected to the shopping agent.
+The customer-interface and Express scaffolds are not yet connected to the shopping agent.
+The documentation website describes the local prototype and does not call a shopping API.
 The Python Flask API remains paused. The CLI is for trusted local demonstration,
 not public customer authentication.
 
@@ -23,22 +25,34 @@ not public customer authentication.
 Use Python 3.12 with Tkinter. From the repository root:
 
 ```powershell
-python -m venv server/python/.venv
-.\server\python\.venv\Scripts\python.exe -m pip install -r server/python/requirements-dev.txt
-.\server\python\.venv\Scripts\python.exe server/python/main.py setup
+python -m venv main_setup/python/.venv
+.\main_setup\python\.venv\Scripts\python.exe -m pip install -r main_setup/python/requirements-dev.txt
+.\main_setup\python\.venv\Scripts\python.exe main_setup/python/main.py setup
 ```
 
 Select an empty SQLite database for the easiest demo, initialize it, and import
-the sample products and reviews from `server/python/examples/`. Configure your
+the sample products and reviews from `main_setup/python/examples/`. Configure your
 Groq API key and model, then save setup.
 
 ```powershell
-.\server\python\.venv\Scripts\python.exe server/python/main.py customer --id demo --name "Demo Customer"
-.\server\python\.venv\Scripts\python.exe server/python/main.py chat --customer demo
+.\main_setup\python\.venv\Scripts\python.exe main_setup/python/main.py customer --id demo --name "Demo Customer"
+.\main_setup\python\.venv\Scripts\python.exe main_setup/python/main.py chat --customer demo
 ```
 
 Use `/confirm CONFIRMATION_ID` to commit a prepared order or cancellation.
 Use `/reset` to clear the session and `/quit` to exit.
+
+## Run the documentation website
+
+From the repository root:
+
+```powershell
+npm install --prefix web
+npm run dev --prefix web
+```
+
+Create the production build with `npm run build --prefix web`. The static output
+is written to `web/dist/`; see [frontend setup and deployment notes](web/README.md).
 
 ## Data support
 
@@ -53,11 +67,12 @@ Groq requires internet access. Optional embedding-based retrieval is deferred.
 ## Tests and documentation
 
 ```powershell
-.\server\python\.venv\Scripts\python.exe -m pytest server/python/tests -q
+.\main_setup\python\.venv\Scripts\python.exe -m pytest main_setup/python/tests -q
 ```
 
-See [Python setup and behavior](server/python/README.md),
-[Express backend](server/node/README.md), and [web scaffold](client/web/README.md).
+See [Python setup and behavior](main_setup/python/README.md),
+[Express backend](main_setup/node/README.md), [customer-interface scaffold](main_setup/client/web/README.md),
+and [documentation website](web/README.md).
 
 The standard Python suite has 31 passing tests; the PostgreSQL test is opt-in
 and has also passed against an isolated local PostgreSQL instance. Live Groq

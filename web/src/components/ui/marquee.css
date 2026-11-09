@@ -1,0 +1,16 @@
+.veyrix-marquee{overflow:hidden;width:100%;min-width:0}
+.veyrix-marquee .marquee-track{display:flex;width:max-content;min-width:200%;animation:veyrix-marquee-x var(--marquee-duration,20s) linear infinite}
+.veyrix-marquee .marquee-group{display:flex;flex:1 0 auto;align-items:center;justify-content:space-around}
+.veyrix-marquee[data-vertical=true] .marquee-track{flex-direction:column;width:100%;height:max-content;min-width:0;min-height:200%;animation-name:veyrix-marquee-y}
+.veyrix-marquee[data-vertical=true] .marquee-group{flex-direction:column}
+.veyrix-marquee[data-reverse=true] .marquee-track{animation-direction:reverse}
+.veyrix-marquee[data-paused=true] .marquee-track,.veyrix-marquee:focus-within .marquee-track{animation-play-state:paused}
+@media(hover:hover){.veyrix-marquee[data-hover-pause=true]:hover .marquee-track{animation-play-state:paused}}
+@keyframes veyrix-marquee-x{to{transform:translateX(-50%)}}
+@keyframes veyrix-marquee-y{to{transform:translateY(-50%)}}
+@media(prefers-reduced-motion:reduce){
+  .veyrix-marquee{mask-image:none!important;-webkit-mask-image:none!important}
+  .veyrix-marquee .marquee-track{animation:none;transform:none;min-width:0;width:100%}
+  .veyrix-marquee .marquee-group{flex-wrap:wrap;gap:16px;justify-content:center}
+  .veyrix-marquee .marquee-copy{display:none}
+}
