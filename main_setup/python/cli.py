@@ -1,15 +1,11 @@
+"""Optional terminal adapter for an already configured headless runtime."""
 import json
-from sqlalchemy import select
-from db.models import customers
-from agent.agent import ShoppingAgent
+from api import ShoppingAPI
+
 
 def run(runtime, customer_id):
-    if runtime.orders.can_write:
-        with runtime.engine.connect() as conn:
-            if not conn.execute(select(customers.c.id).where(customers.c.id == customer_id)).first():
-                raise ValueError('Unknown demo customer. Run the customer command first.')
-    session_id = runtime.sessions.create(customer_id)
-    agent = ShoppingAgent(runtime)
+    api = ShoppingAPI(runtime)
+    session_id = api.start_session(customer_id)
     print('Local prototype CLI. /confirm ID, /reset, /quit. Customer selection is for trusted local testing only.')
     try:
         while True:
@@ -18,19 +14,15 @@ def run(runtime, customer_id):
                 break
             try:
                 if text == '/reset':
-                    runtime.sessions.close(session_id)
-                    session_id = runtime.sessions.create(customer_id)
+                    session_id = api.reset_session(session_id)
                     print('Session reset.')
                 elif text.startswith('/confirm '):
-                    result = runtime.orders.confirm(runtime.sessions.get(session_id), text.split(maxsplit=1)[1])
-                    print(json.dumps(result, indent=2))
-                    from memory.chat_memory import add_turn
-                    add_turn(runtime.sessions.get(session_id), text, 'Verified database result: ' + json.dumps(result))
+                    print(json.dumps(api.confirm(session_id, text.split(maxsplit=1)[1]), indent=2))
                 else:
-                    print('Agent:', agent.chat(session_id, text))
-                    pending = runtime.sessions.get(session_id).pending
-                    if pending:
-                        print('Pending action:', json.dumps(pending, default=str, indent=2))
+                    result = api.chat(session_id, text)
+                    print('Agent:', result['answer'])
+                    if result['pending']:
+                        print('Pending action:', json.dumps(result['pending'], indent=2))
             except ValueError as exc:
                 print(str(exc))
             except Exception:
@@ -38,4 +30,4 @@ def run(runtime, customer_id):
     except (EOFError, KeyboardInterrupt):
         pass
     finally:
-        runtime.sessions.close(session_id)
+        api.close_session(session_id)

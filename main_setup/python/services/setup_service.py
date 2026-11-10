@@ -1,9 +1,9 @@
-import json
+"""Headless database inspection, initialization, and file import operations."""
 from sqlalchemy import inspect, text
 from db.connection import connect
 from db.db_setup import initialize, writable
 from db.catalog_repository import Catalog
-from db.importers.files import read_file, import_records
+from db.importers.files import import_records
 
 def test_database(config, secrets):
     engine = connect(config, secrets)

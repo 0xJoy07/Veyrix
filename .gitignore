@@ -6,7 +6,8 @@ shopping agent
 shopping agent.zip
 
 .env
-.env.local
+.env.*
+!.env.example
 
 node_modules
 .vscode
@@ -17,3 +18,7 @@ python/**/__pycache__/
 python/.pytest_cache/
 python/**/.pytest_cache/
 *.pyc
+.venv/
+__pycache__/
+.pytest_cache/
+main_setup/python/state/

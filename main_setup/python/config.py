@@ -1,4 +1,4 @@
-"""Non-secret setup configuration. Secrets are held separately."""
+"""Non-secret backend configuration; environment.py supplies runtime settings."""
 import json
 import re
 from dataclasses import dataclass, asdict, field
@@ -23,7 +23,7 @@ class Config:
     mapping: dict = field(default_factory=dict)
     delivery_minor: int = 0
     policy: str = 'Pay on delivery only. Cancellation allowed before dispatch.'
-    session_seconds: int = 1800
+    session_seconds: int = 0
     profile: str = 'default'
 
     def validate(self):
@@ -39,8 +39,11 @@ class Config:
             raise ValueError('Store name and database are required.')
         if len(self.currency) != 3 or not self.currency.isalpha():
             raise ValueError('Currency must be a three-letter code.')
-        if self.delivery_minor < 0 or self.session_seconds < 60:
-            raise ValueError('Delivery charge must be nonnegative; session timeout at least 60 seconds.')
+        if self.delivery_minor < 0:
+            raise ValueError('Delivery charge must be nonnegative.')
+        if (not isinstance(self.session_seconds, int) or isinstance(self.session_seconds, bool)
+                or self.session_seconds < 0 or 0 < self.session_seconds < 60):
+            raise ValueError('Session timeout must be 0 (until closed) or at least 60 seconds.')
         if self.source != 'sqlite' and (not self.host or not self.username or not 1 <= self.port <= 65535):
             raise ValueError('Server host, username, and valid port required.')
         return self

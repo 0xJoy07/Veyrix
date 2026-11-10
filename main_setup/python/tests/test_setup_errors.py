@@ -1,6 +1,6 @@
 import pytest
 from sqlalchemy.exc import OperationalError, NoSuchTableError
-from setup_ui.errors import describe_error
+from services.errors import describe_error
 
 
 @pytest.mark.parametrize('detail,expected', [

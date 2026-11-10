@@ -1,3 +1,10 @@
 [
-  {"id":"hat-01","name":"Cotton Hat","price":"299.00","stock":8,"category":"Accessories","description":"Light cotton hat"}
+  {
+    "id": "hat-01",
+    "name": "Cotton Hat",
+    "price": "299.00",
+    "stock": 8,
+    "category": "Accessories",
+    "description": "Light cotton hat"
+  }
 ]
