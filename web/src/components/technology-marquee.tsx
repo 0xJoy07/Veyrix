@@ -1,5 +1,5 @@
 import { Marquee } from '@/components/ui/marquee';
-const technologies = ['Python', 'LangChain', 'Groq', 'SQLAlchemy'];
+const technologies = ['React', 'TypeScript', 'Prisma', 'Supabase', 'Python', 'LangChain', 'Groq', 'Resend'];
 export default function TechnologyMarquee() {
   return <section className="technology-marquee" aria-label="The engine underneath">
     <p className="technology-label">THE ENGINE UNDERNEATH</p>

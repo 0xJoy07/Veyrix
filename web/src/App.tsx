@@ -10,8 +10,9 @@ const loadHome = () => import('@/pages/Home');
 const loadOverview = () => import('@/pages/Overview');
 const loadArchitecture = () => import('@/pages/Architecture');
 const loadQuickstart = () => import('@/pages/Quickstart');
+const loadDemoChat = () => import('@/pages/DemoChat');
 const loadStatus = () => import('@/pages/Status');
-const titles: Record<string,string> = {'/':'Commerce, in conversation.','/docs':'Documentation','/docs/quickstart':'Getting started','/architecture':'Architecture','/status':'Project status'};
+const titles: Record<string,string> = {'/':'Commerce, in conversation.','/docs':'Documentation','/docs/quickstart':'Getting started','/architecture':'Architecture','/status':'Project status','/docs/demo-chat':'Demo chat'};
 function Layout() {
   const { pathname } = useLocation();
   const [menu, setMenu] = useState(false);
@@ -53,7 +54,7 @@ function Layout() {
       className="veyrix-wordmark-footer"
       wordmark="veyrix"
       label="Veyrix / Conversational commerce"
-      meta="Local prototype. Real possibilities."
+      meta="Working prototype. Connected to Supabase."
       palette={{ background: '#000000', ink: '#d6d6d6', warm: '#9daeff' }}
       grain={0.18}
       dotGap={6}
@@ -61,9 +62,9 @@ function Layout() {
       radius={90}
       height="clamp(560px, 44vw, 800px)"
       fontFamily="Inter Variable, sans-serif"
-    /> : <footer className="site-footer"><Link className="brand" to="/"><span className="brand-symbol">V</span>veyrix</Link><p>Conversational commerce, connected to your business.</p><div className="site-footer-links"><a href={REPOSITORY_URL} target="_blank" rel="noopener noreferrer" aria-label="Veyrix repository on GitHub (opens in a new tab)"><Github size={15} aria-hidden="true"/>GitHub repository</a><Link to="/status">Local prototype <span className="footer-dot"/></Link></div></footer>}
+    /> : <footer className="site-footer"><Link className="brand" to="/"><span className="brand-symbol">V</span>veyrix</Link><p>Conversational commerce, connected to your business.</p><div className="site-footer-links"><a href={REPOSITORY_URL} target="_blank" rel="noopener noreferrer" aria-label="Veyrix repository on GitHub (opens in a new tab)"><Github size={15} aria-hidden="true"/>GitHub repository</a><Link to="/status">Working prototype <span className="footer-dot"/></Link></div></footer>}
   </div>;
 }
-function DocsLayout() { return <><nav className="docs-nav" aria-label="Documentation sections"><NavLink end to="/docs">Overview</NavLink><NavLink to="/docs/quickstart">Quickstart</NavLink></nav><Outlet/></>; }
+function DocsLayout() { return <><nav className="docs-nav" aria-label="Documentation sections"><NavLink end to="/docs">Overview</NavLink><NavLink to="/docs/quickstart">Quickstart</NavLink><NavLink to="/docs/demo-chat">Demo chat</NavLink></nav><Outlet/></>; }
 function NotFound() { return <section className="section-pad not-found"><p className="kicker">404 / PAGE NOT FOUND</p><h1>This page isn’t here.</h1><p>Find your way back to Veyrix or explore the documentation.</p><AntiMetalLink to="/">Back to home</AntiMetalLink></section>; }
-export default function App() { return <BrowserRouter><Routes><Route element={<Layout/>}><Route index element={<RoutePage load={loadHome}/>}/><Route path="docs" element={<DocsLayout/>}><Route index element={<RoutePage load={loadOverview}/>}/><Route path="quickstart" element={<RoutePage load={loadQuickstart}/>}/></Route><Route path="architecture" element={<RoutePage load={loadArchitecture}/>}/><Route path="docs/architecture" element={<Navigate to="/architecture" replace/>}/><Route path="status" element={<RoutePage load={loadStatus}/>}/><Route path="*" element={<NotFound/>}/></Route></Routes></BrowserRouter>; }
+export default function App() { return <BrowserRouter><Routes><Route element={<Layout/>}><Route index element={<RoutePage load={loadHome}/>}/><Route path="docs" element={<DocsLayout/>}><Route index element={<RoutePage load={loadOverview}/>}/><Route path="quickstart" element={<RoutePage load={loadQuickstart}/>}/><Route path="demo-chat" element={<RoutePage load={loadDemoChat}/>}/></Route><Route path="architecture" element={<RoutePage load={loadArchitecture}/>}/><Route path="docs/architecture" element={<Navigate to="/architecture" replace/>}/><Route path="status" element={<RoutePage load={loadStatus}/>}/><Route path="*" element={<NotFound/>}/></Route></Routes></BrowserRouter>; }

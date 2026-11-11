@@ -7,15 +7,15 @@ import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
 const PausedContext = createContext(false)
 const messages = [
   'Customer: "Help me find walking shoes within my budget."',
-  'Session: load conversation history and temporary cart.',
+  'Session: load verified history and cart from Supabase.',
   'Agent: select a catalog tool using LangChain and Groq.',
   'Catalog: read matching products, prices, and stock from SQL.',
   'Reviews: retrieve available customer feedback.',
   'Cart: validate requested quantities against stock.',
   'Order: prepare a summary and a short-lived confirmation ID.',
-  'Awaiting explicit customer confirmation through the CLI.',
+  'Awaiting the customer to select the confirmation button.',
   'After confirmation: save the order and update stock atomically.',
-  'Example complete. Orders persist; chat and cart remain temporary.',
+  'Example complete. Orders, chats and carts are persisted in Supabase.',
 ]
 
 function AnimatedDot({
@@ -270,7 +270,7 @@ export default function EnterpriseAIPipeline() {
           fill="rgba(255,255,255,0.55)"
           fontFamily="Inter Variable, sans-serif"
         >
-          local CLI
+          web chat
         </text>
 
         {/* Vector DB Node */}
@@ -433,7 +433,7 @@ export default function EnterpriseAIPipeline() {
       </svg></div>
 
       <div className="pipeline-mobile" aria-label="Shopping agent workflow">
-        <div className="pipeline-mobile-node"><MessageSquare size={18} aria-hidden="true"/><div><span>Customer</span><strong>Shopping query</strong></div><small>Local CLI</small></div>
+        <div className="pipeline-mobile-node"><MessageSquare size={18} aria-hidden="true"/><div><span>Customer</span><strong>Shopping query</strong></div><small>Web chat</small></div>
         <ArrowDown className="pipeline-mobile-connector" size={18} aria-hidden="true"/>
         <div className="pipeline-mobile-node"><Layers3 size={18} aria-hidden="true"/><div><span>Session</span><strong>History + cart</strong></div><small>In memory</small></div>
         <ArrowDown className="pipeline-mobile-connector" size={18} aria-hidden="true"/>

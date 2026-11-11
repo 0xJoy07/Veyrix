@@ -24,9 +24,9 @@ export default function Home() { return <>
     scrollHint={false}
   />
   <TechnologyMarquee />
-  <section id="home-overview" tabIndex={-1} className="docs-section"><div className="section-heading"><p className="kicker">COMMERCE, IN CONVERSATION</p><h2>Your products.<br/>A more helpful way to shop.</h2><p>Veyrix brings catalog discovery, shopping conversations, and explicit order confirmation into one local agent.</p></div><FeaturesSectionWithHoverEffects /></section>
+  <section id="home-overview" tabIndex={-1} className="docs-section"><div className="section-heading"><p className="kicker">COMMERCE, IN CONVERSATION</p><h2>Your products.<br/>A more helpful way to shop.</h2><p>Veyrix brings catalog discovery, shopping conversations, and explicit order confirmation into a verified shopping experience backed by Supabase.</p></div><FeaturesSectionWithHoverEffects /></section>
   <section className="home-footer-invitation" aria-labelledby="footer-invitation-title">
-    <div className="footer-invitation-copy"><p className="kicker">YOUR NEXT STEP</p><h2 id="footer-invitation-title">Meet the engine.<br/><span>Build the conversation.</span></h2><p>Explore how Veyrix works, connect your catalog, and run your first shopping conversation locally.</p></div>
-    <div className="footer-invitation-actions"><span className="footer-project-note"><i aria-hidden="true"/> BUILT AS A LOCAL PROTOTYPE</span><AntiMetalLink to="/docs/quickstart">Start with the quickstart</AntiMetalLink><AntiMetalLink to="/docs">Explore the documentation</AntiMetalLink><GitHubRepoButton label="View the repository"/></div>
+    <div className="footer-invitation-copy"><p className="kicker">YOUR NEXT STEP</p><h2 id="footer-invitation-title">Meet the engine.<br/><span>Build the conversation.</span></h2><p>Explore how Veyrix works, connect your catalog, and run the interactive chat with email verification, saved addresses, and live product data.</p></div>
+    <div className="footer-invitation-actions"><span className="footer-project-note"><i aria-hidden="true"/> WORKING PROTOTYPE · CLOUD DATA</span><AntiMetalLink to="/docs/quickstart">Start with the quickstart</AntiMetalLink><AntiMetalLink to="/demo-chat">Explore the demo chat</AntiMetalLink><GitHubRepoButton label="View the repository"/></div>
   </section>
 </>; }

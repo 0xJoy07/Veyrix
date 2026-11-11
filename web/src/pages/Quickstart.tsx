@@ -4,117 +4,40 @@ import { Check, TerminalSquare, ArrowRight, ArrowUpRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Code } from '@/components/code-block';
 import { Disclosure, DocCallout, DocumentSection, OnThisPage } from '@/components/docs/document-parts';
-import { optionalSetupResources, requiredSetupResources, setupLinks } from '@/content/setup-resources';
-import { pythonSourceUrl } from '@/lib/repository';
+import { optionalSetupResources, requiredSetupResources } from '@/content/setup-resources';
 import './quickstart-resources.css';
-
-const preflight = String.raw`python --version
-python -m pip --version
-python -m tkinter`;
-const setup = String.raw`python -m venv main_setup/python/.venv
-.\main_setup\python\.venv\Scripts\python.exe -m pip install -r main_setup/python/requirements-dev.txt
-.\main_setup\python\.venv\Scripts\python.exe main_setup/python/main.py setup`;
-const chat = String.raw`.\main_setup\python\.venv\Scripts\python.exe main_setup/python/main.py customer --id demo --name "Demo Customer"
-.\main_setup\python\.venv\Scripts\python.exe main_setup/python/main.py chat --customer demo`;
-const verify = String.raw`.\main_setup\python\.venv\Scripts\python.exe -m pytest main_setup/python/tests -q`;
-const frontend = String.raw`npm ci --prefix web
-npm run dev --prefix web`;
-const sections = [
-  { id: 'prerequisites', label: 'Before you start' },
-  { id: 'install', label: 'Install the environment' },
-  { id: 'configure', label: 'Configure the store' },
-  { id: 'first-chat', label: 'Run a conversation' },
-  { id: 'verify', label: 'Check your result' },
-  { id: 'optional-tools', label: 'Optional tools' },
-  { id: 'troubleshooting', label: 'Troubleshooting' },
-];
-const prerequisites = [
-  { title: 'Python 3.12 with Tkinter', text: 'Install Python with Tk support so the business setup window can open.' },
-  { title: 'The project open in PowerShell', text: 'Use the repository root: the directory containing both main_setup and web.' },
-  { title: 'A Groq API key and a tool-capable model', text: 'The live conversation requires a working internet connection and provider access.' },
-  { title: 'An empty database for this demo', text: 'Choose a new SQLite file. The setup tool initializes only empty databases.' },
-];
-
-function SetupLink({ href, children }: { href: string; children: ReactNode }) {
-  return <a className="setup-resource-link" href={href} target="_blank" rel="noopener noreferrer">{children}<ArrowUpRight size={14} aria-hidden="true"/><span className="sr-only"> (opens in a new tab)</span></a>;
-}
-
-export default function Quickstart() {
-  const [checked, setChecked] = useState<string[]>([]);
-  return <div className="knowledge-page quickstart-page">
-    <header className="doc-hero"><p className="kicker">DOCUMENTATION / QUICKSTART</p><h1>Your first conversation.<br/><span>From a clean local setup.</span></h1><p>Set up a sample store, start the shopping agent, and complete an explicitly confirmed order. This walkthrough uses Windows PowerShell and the bundled SQLite sample catalog.</p><div className="doc-meta"><span><TerminalSquare size={14}/>Windows · PowerShell</span><span>Python 3.12</span><span>Sample data included</span></div></header>
-    <div className="doc-layout"><OnThisPage sections={sections}/><article className="doc-article">
-      <DocumentSection id="prerequisites" number="00" title="Prepare your workspace" description="Use this checklist to keep track of your setup. Checks are personal reminders for this visit, not automatic environment detection.">
-        <div className="repository-start"><div><h3>Get the project source</h3><p>Open the Veyrix repository, clone it or download its ZIP, and open the extracted project folder in your editor.</p></div><GitHubRepoButton label="Open GitHub repo"/></div>
-        <h3 className="doc-subheading">Official downloads & accounts</h3>
-        <p>Prepare these before running the install commands. Each link opens the official download page or service in a new tab.</p>
-        <div className="setup-resource-grid">{requiredSetupResources.map(resource => <div className="setup-resource-card" key={resource.title}><span className="setup-resource-badge">{resource.badge}</span><h3>{resource.title}</h3><p>{resource.text}</p><div className="setup-resource-links">{resource.links.map(link => <SetupLink key={link.href} href={link.href}>{link.label}</SetupLink>)}</div><p className="setup-resource-note">{resource.note}</p></div>)}</div>
-        <div className="setup-included"><h3>Already included in the Python setup</h3><p>The standard Windows installer supplies Tkinter and SQLite support. Creating a virtual environment provides pip for installing the project’s packages. The SQLite demo uses a local file created by the setup window.</p><div className="setup-resource-links"><SetupLink href={setupLinks.tkinter}>Tkinter setup check</SetupLink><SetupLink href={setupLinks.venv}>Virtual environments</SetupLink><SetupLink href={setupLinks.pip}>pip installation help</SetupLink><SetupLink href={setupLinks.sqlite}>SQLite reference</SetupLink></div></div>
-        <h3 className="doc-subheading">Ready to start?</h3>
-        <div className="prerequisite-list">{prerequisites.map(item => <label key={item.title}><input type="checkbox" checked={checked.includes(item.title)} onChange={event => setChecked(current => event.target.checked ? [...current, item.title] : current.filter(title => title !== item.title))}/><span className="prerequisite-check" aria-hidden="true"><Check size={14}/></span><span><strong>{item.title}</strong><small>{item.text}</small></span></label>)}<div className="checklist-total" aria-live="polite">{checked.length} of {prerequisites.length} prerequisites checked<span>{checked.length === prerequisites.length ? 'Ready to follow the steps' : 'Check each item when ready'}</span></div></div>
-      </DocumentSection>
-
-      <DocumentSection id="install" number="01" title="Create the environment" description="Run the following commands from the repository root, one at a time. The last command opens the desktop setup window.">
-        <h3 className="doc-subheading">Check Python first</h3><p>Confirm the version is 3.12.x and pip is available. The final check opens a small Tkinter demo window; close it before continuing.</p><Code text={preflight}/>
-        <h3 className="doc-subheading">Install the project packages</h3>
-        <Code text={setup}/>
-        <p className="doc-footnote">Calling the environment’s Python executable directly avoids needing to activate PowerShell scripts. Keep the setup window open for the next step.</p>
-        <div className="setup-included"><h3>Installed by the requirements file</h3><p>The command installs SQLAlchemy, the PostgreSQL and MySQL drivers, LangChain Core, the Groq integration, OS keyring support, and pytest. Keep package versions together by using the project manifests.</p><div className="setup-resource-links"><SetupLink href={pythonSourceUrl('requirements.txt')}>Runtime dependencies</SetupLink><SetupLink href={pythonSourceUrl('requirements-dev.txt')}>Development dependencies</SetupLink><SetupLink href={pythonSourceUrl('requirements-lock.txt')}>Recorded package versions</SetupLink></div></div>
-        <DocCallout title="Reproducing the validated dependency set">For the exact recorded package versions, use <code>main_setup/python/requirements-lock.txt</code> in the install command instead of <code>requirements-dev.txt</code>.</DocCallout>
-      </DocumentSection>
-
-      <DocumentSection id="configure" number="02" title="Give the store a catalog" description="Complete these actions in the business setup window. Begin with the bundled records before trying your own mappings.">
-        <ol className="setup-actions">
-          <li><strong>Initialize the database.</strong><p>Choose SQLite, select a new database file, and click <em>Initialize empty database</em>. The application creates its product, customer, and order tables.</p></li>
-          <li><strong>Preview and import products.</strong><p>Import <code>main_setup/python/examples/products.csv</code>. To add feedback, switch <em>Record type</em> to <em>reviews</em>, then import <code>main_setup/python/examples/reviews.csv</code>.</p></li>
-          <li><strong>Configure the model.</strong><p>Enter your Groq API key and a tool-capable model ID available to your account. Use <em>Test Groq</em> to check the credentials and connection.</p></li>
-          <li><strong>Validate and save.</strong><p>Review the store settings, test the database connection, and save the profile. Close the setup window before continuing in PowerShell.</p></li>
-        </ol>
-        <div className="setup-resource-links setup-sample-links"><SetupLink href={pythonSourceUrl('examples/products.csv')}>Sample products CSV</SetupLink><SetupLink href={pythonSourceUrl('examples/products.json')}>Additional product JSON sample</SetupLink><SetupLink href={pythonSourceUrl('examples/reviews.csv')}>Sample reviews CSV</SetupLink></div>
-        <p className="doc-footnote">Follow this walkthrough with the products CSV. The optional JSON sample adds a separate Cotton Hat item; it does not contain the Walking Shoes used below.</p>
-        <div className="doc-table-wrap" tabIndex={0} aria-label="Store configuration reference"><table className="doc-table"><caption>Settings to review for the sample store</caption><thead><tr><th>Setting</th><th>First-run choice</th><th>Effect</th></tr></thead><tbody>
-          <tr><th scope="row">Store name</th><td>A recognizable demo name</td><td>Identifies the business in the agent’s context.</td></tr>
-          <tr><th scope="row">Currency</th><td>INR for the bundled example</td><td>One currency per store; amounts use two decimal places.</td></tr>
-          <tr><th scope="row">Delivery charge</th><td>0 for a simple first run</td><td>Added to the checkout total; stored in minor currency units.</td></tr>
-          <tr><th scope="row">Product mapping</th><td>Product table: <code>products</code><br/>Catalog mapping JSON: <code>{'{}'}</code></td><td>Leave the mapping empty to keep the canonical order path available.</td></tr>
-          <tr><th scope="row">Remember credentials</th><td>Optional</td><td>Uses the OS keyring when selected. Otherwise the CLI asks again.</td></tr>
-        </tbody></table></div>
-        <DocCallout title="Expected sample catalog" tone="mint">The CSV adds <strong>Walking Shoes</strong> (<code>shoe-01</code>, 1,299.00, stock 10) and <strong>Canvas Bag</strong> (<code>bag-01</code>, 499.00, stock 5). Import a file once: duplicate IDs reject the whole import rather than overwriting stock.</DocCallout>
-        <p className="doc-footnote">Non-secret settings are saved in <code>main_setup/python/state/config.json</code>. Credentials are handled separately.</p>
-      </DocumentSection>
-
-      <DocumentSection id="first-chat" number="03" title="Start the local customer session" description="Register a demo identity, then open the CLI conversation. Customer selection here is a trusted local test facility.">
-        <Code text={chat}/>
-        <h3 className="doc-subheading">Try this sequence in the chat</h3>
-        <div className="prompt-sequence"><div><span>01 / DISCOVER</span><q>Show me the walking shoes and their reviews.</q></div><div><span>02 / ADD</span><q>Add one Walking Shoes item to my cart.</q></div><div><span>03 / PREPARE</span><q>Prepare checkout for Demo Customer, 10 Test Street, Test City.</q></div></div>
-        <p>The CLI prints a pending action separately from the agent’s message. Inspect its items, quantity, address, and total. Enter <code>/confirm CONFIRMATION_ID</code>, replacing the placeholder with the actual identifier from that pending action.</p>
-        <DocCallout title="Use the confirmation from this session" tone="violet">An ordinary “yes” does not place an order. The confirmation expires after five minutes. If it has expired, ask the agent to prepare checkout again and review the new summary.</DocCallout>
-        <div className="doc-table-wrap" tabIndex={0} aria-label="Local chat commands"><table className="doc-table"><caption>Commands entered at the chat prompt, not in PowerShell</caption><thead><tr><th>Command</th><th>What it does</th></tr></thead><tbody><tr><th scope="row"><code>/confirm CONFIRMATION_ID</code></th><td>Applies the pending order or cancellation associated with that identifier.</td></tr><tr><th scope="row"><code>/reset</code></th><td>Starts a fresh session and clears its temporary conversation, cart, and pending action.</td></tr><tr><th scope="row"><code>/quit</code></th><td>Closes the conversation and returns to your shell.</td></tr></tbody></table></div>
-      </DocumentSection>
-
-      <DocumentSection id="verify" number="04" title="Check the outcome" description="Use the returned data to confirm the demo behaved as expected.">
-        <div className="verification-checks"><div><Check size={17}/><p><strong>Order result:</strong> a successful confirmation returns an order result from the database. Do not treat an agent’s proposed summary as a saved order.</p></div><div><Check size={17}/><p><strong>Catalog stock:</strong> after buying one pair from the fresh sample catalog, Walking Shoes should have 9 units remaining.</p></div><div><Check size={17}/><p><strong>Order history:</strong> ask to view your orders. Resetting the chat clears temporary context but does not delete the saved purchase.</p></div></div>
-        <h3 className="doc-subheading">Run the automated checks</h3><p>The default suite uses isolated SQLite databases and a mock model. It does not require a Groq key. The separate PostgreSQL integration test is opt-in and is normally skipped.</p><Code text={verify}/>
-        <Link to="/status" className="doc-inline-link">See the verification coverage and remaining gaps <ArrowRight size={15}/></Link>
-      </DocumentSection>
-
-      <DocumentSection id="optional-tools" number="05" title="Tools for other workflows" description="These are optional. Choose them when cloning the repository, working on the website, or connecting an external database.">
-        <div className="setup-optional-grid">{optionalSetupResources.map(resource => <div className="setup-resource-card" key={resource.title}><span className="setup-resource-badge">Optional</span><h3>{resource.title}</h3><p>{resource.text}</p><SetupLink href={resource.href}>{resource.label}</SetupLink></div>)}</div>
-        <h3 className="doc-subheading">Run the documentation website locally</h3><p>After installing Node.js, run these commands from the repository root and open the local address printed by Vite. This frontend runs independently and needs no Groq key or database.</p><Code text={frontend}/>
-        <DocCallout title="Choosing an external database">PostgreSQL and MySQL need a reachable server, an existing empty database for initialization, and credentials with the required permissions. Enter those details in the setup window. The included drivers connect to the server; they do not install it.</DocCallout>
-      </DocumentSection>
-
-      <DocumentSection id="troubleshooting" number="06" title="Resolve common setup issues" description="Start with the specific stage that failed.">
-        <div className="doc-accordion-group">
-          <Disclosure title="Python or the setup window does not start"><p>Confirm that <code>python</code> resolves to Python 3.12 and that Tkinter is installed. If Windows opens the Store instead, check the Python installation and execution alias. Run the commands from the repository root so the <code>main_setup/python</code> paths resolve correctly.</p></Disclosure>
-          <Disclosure title="The database cannot be initialized"><p>Initialization is designed for an empty database. Choose a new file for the demo. For an existing Veyrix database, validate its schema instead of trying to initialize it again.</p></Disclosure>
-          <Disclosure title="An import is rejected"><p>Preview the file and check its field mappings. CSV must be comma-delimited UTF-8; JSON must be an array of records. Files must be no larger than 10 MB. Duplicate IDs, including IDs already in the database, reject the entire import. Import products before their reviews.</p></Disclosure>
-          <Disclosure title="The chat provider is unavailable"><p>Reopen setup and test Groq with your chosen model and credentials. Check internet access, account limits, and that the model supports tools. If credentials were not saved in the OS keyring, provide them when the CLI asks.</p></Disclosure>
-          <Disclosure title="The CLI reports an unknown customer"><p>Run the customer registration command after saving the store setup, then start chat with the same ID. Make sure both commands use the same configuration and database.</p></Disclosure>
-          <Disclosure title="Checkout is unavailable or confirmation fails"><p>Custom product mappings support catalog reads; the built-in checkout requires a validated application schema and canonical product mapping. For an expired token or changed product, prepare a new summary. For insufficient stock, reduce the quantity and try again.</p></Disclosure>
-        </div>
-      </DocumentSection>
-      <div className="doc-bottom-nav"><Link to="/docs">Back to Overview</Link><Link to="/architecture">Explore the Architecture <ArrowRight size={16}/></Link></div>
-    </article></div>
-  </div>;
-}
+const install = String.raw`python -m venv setup/python/.venv
+.\setup\python\.venv\Scripts\python.exe -m pip install -r setup/python/requirements-dev.txt
+npm ci --prefix setup/node
+npm ci --prefix chat
+npm ci --prefix web
+npm run prisma:generate --prefix setup/node`;
+const env = String.raw`if (-not (Test-Path setup/node/.env)) { Copy-Item setup/node/.env.example setup/node/.env }
+if (-not (Test-Path setup/python/.env)) { Copy-Item setup/python/.env.example setup/python/.env }`;
+const start = String.raw`.\start-dev.ps1`;
+const manual = String.raw`# Run each command in its own terminal, from the repository root.
+npm run dev --prefix setup/node
+.\setup\python\.venv\Scripts\python.exe -u setup/python/main.py
+npm run dev --prefix chat`;
+const tests = String.raw`npm test --prefix setup/node
+npm run build --prefix setup/node
+npm test --prefix chat
+npm run build --prefix chat
+.\setup\python\.venv\Scripts\python.exe -m pytest setup/python/tests -q`;
+const sections=[{id:'prerequisites',label:'Before you start'},{id:'install',label:'Install dependencies'},{id:'configure',label:'Connect services'},{id:'first-chat',label:'Run the chat'},{id:'verify',label:'Verify persistence'},{id:'optional-tools',label:'Documentation site'},{id:'troubleshooting',label:'Troubleshooting'}];
+const prerequisites=['Python 3.12 and Node 22.12+ are available','Supabase connection and existing schema are reviewed','Groq key and tool-capable model are configured','Resend key and sender address are configured'];
+function SetupLink({href,children}:{href:string;children:ReactNode}){return <a className="setup-resource-link" href={href} target="_blank" rel="noopener noreferrer">{children}<ArrowUpRight size={14}/><span className="sr-only"> (opens in a new tab)</span></a>;}
+export default function Quickstart(){const [checked,setChecked]=useState<string[]>([]);return <div className="knowledge-page quickstart-page">
+<header className="doc-hero"><p className="kicker">DOCUMENTATION / QUICKSTART</p><h1>Run the prototype.<br/><span>Connect the real store.</span></h1><p>Start the verified-customer chat, TypeScript commerce service and stateless Python assistant. Supabase holds the live catalog and conversation data; the browser provides the interactive checkout.</p><div className="doc-meta"><span><TerminalSquare size={14}/>Windows · PowerShell</span><span>Python + Node + Supabase</span><span>Prototype workflow</span></div></header>
+<div className="doc-layout"><OnThisPage sections={sections}/><article className="doc-article">
+<DocumentSection id="prerequisites" number="00" title="Prepare your workspace" description="This checklist is a reminder, not automatic environment detection."><div className="repository-start"><div><h3>Get the source</h3><p>Open the repository root containing setup, chat and web.</p></div><GitHubRepoButton label="Open GitHub repo"/></div><div className="setup-resource-grid">{requiredSetupResources.map(r=><div className="setup-resource-card" key={r.title}><span className="setup-resource-badge">{r.badge}</span><h3>{r.title}</h3><p>{r.text}</p><div className="setup-resource-links">{r.links.map(l=><SetupLink key={l.href} href={l.href}>{l.label}</SetupLink>)}</div><p className="setup-resource-note">{r.note}</p></div>)}</div><div className="prerequisite-list">{prerequisites.map(item=><label key={item}><input type="checkbox" checked={checked.includes(item)} onChange={e=>setChecked(old=>e.target.checked?[...old,item]:old.filter(x=>x!==item))}/><span className="prerequisite-check"><Check size={14}/></span><span><strong>{item}</strong></span></label>)}<div className="checklist-total" aria-live="polite">{checked.length} of {prerequisites.length} checked</div></div></DocumentSection>
+<DocumentSection id="install" number="01" title="Install the three services" description="Run from the repository root. These commands do not initialize or replace the database."><Code text={install}/><p>The Python server is headless. Tkinter, a desktop setup wizard, a demo customer and a local SQLite catalog are not part of this runtime.</p></DocumentSection>
+<DocCallout title="Fictional database examples">All demo_store and demo_catalog identifiers below are fictional placeholders. Use your configured database mapping. No connected database records or credentials are shown.</DocCallout><DocumentSection id="configure" number="02" title="Connect the services" description="Keep credentials on the server and preserve the existing database."><Code text={env}/><div className="doc-table-wrap" tabIndex={0}><table className="doc-table"><caption>Environment settings</caption><thead><tr><th>File</th><th>Settings</th><th>Purpose</th></tr></thead><tbody><tr><th>setup/node/.env</th><td><code>DATABASE_URL</code>, <code>DIRECT_URL</code></td><td>Supabase connection with your configured schema; <code>schema=demo_store</code> is fictional. Prisma 7 uses the PostgreSQL driver adapter.</td></tr><tr><th>setup/node/.env</th><td><code>RESEND_API_KEY</code>, <code>RESEND_FROM</code></td><td>Use a valid sender such as <code>Team Veyrix &lt;onboarding@resend.dev&gt;</code> for account-owner testing.</td></tr><tr><th>Both server .env files</th><td><code>SHOPPING_API_KEY</code>, <code>INTERNAL_API_KEY</code></td><td>Matching server-to-server keys; at least 32 characters. Node also needs its own <code>OTP_SECRET</code>.</td></tr><tr><th>setup/python/.env</th><td><code>GROQ_API_KEY</code>, <code>GROQ_MODEL</code></td><td>Live shopping answers and tool selection.</td></tr><tr><th>Service URLs</th><td><code>PYTHON_API_URL</code>, <code>COMMERCE_API_URL</code>, <code>PUBLIC_ORIGIN</code></td><td>Node calls Python; Python calls Node at port 8001; the browser origin is normally http://127.0.0.1:5174.</td></tr></tbody></table></div>
+<DocCallout title="Match the Python port">For example, use <code>SHOPPING_PORT=8000</code> and Node’s <code>PYTHON_API_URL=http://127.0.0.1:8000</code>. The Python code default is 8000. Keep both values aligned; do not leave Node pointing at an older worker.</DocCallout>
+<ol className="setup-actions"><li><strong>Review the existing schema.</strong><p>Follow <code>setup/node/README.md</code>. Apply <code>prisma/upgrade-existing.sql</code> for the existing canonical tables, then <code>prisma/live-catalog.sql</code>. These are not a universal schema generator for arbitrary databases.</p></li><li><strong>Use the authoritative catalog.</strong><p><code>CATALOG_SOURCE=public</code> reads your configured product and review tables through live SQL views. The old copied catalog is not a fallback.</p></li><li><strong>Keep secrets private.</strong><p>Never put API keys or database URLs in <code>VITE_*</code> variables. Do not reset the live database or use a destructive schema push.</p></li></ol>
+<DocCallout title="Resend test sender" tone="violet">Without a verified sending domain, <code>onboarding@resend.dev</code> can deliver only to the email associated with your Resend account. A free account does not make that sender available for arbitrary recipients.</DocCallout></DocumentSection>
+<DocumentSection id="first-chat" number="03" title="Launch the interactive conversation" description="The launcher opens three visible terminals with live request logs."><Code text={start}/><Disclosure title="Start each service manually"><Code text={manual}/></Disclosure><p>Open <strong>http://127.0.0.1:5174</strong>. Stop an existing instance before starting another service on the same port. Logs show route, status and timing; they omit OTPs, credentials and message bodies.</p><ol className="setup-actions"><li><strong>Verify your identity.</strong><p>Enter an email or registered Indian mobile number. New customers provide name, email and mobile. Enter the six-digit email code within ten minutes; resending invalidates older codes.</p></li><li><strong>Discover live products.</strong><p>Ask “Show me mechanical keyboards” or “What products are in stock?” Choose products returned by the current catalog rather than assuming a bundled sample exists.</p></li><li><strong>Review delivery.</strong><p>Select a saved address or complete the form: recipient, Indian mobile, street address, required landmark, city, state and six-digit PIN.</p></li><li><strong>Confirm with the button.</strong><p>Review items, quantities and total, then select Confirm order. Payment is pay on delivery. A conversational “yes” does not place an order.</p></li><li><strong>End and restore.</strong><p>End chat shows a farewell and chat ID. Returning to that conversation requires the chat ID and a fresh email OTP. An ended conversation is read-only; start a fresh chat to continue shopping.</p></li></ol><DocCallout title="Cancellation stays explicit" tone="mint">Only orders still confirmed or preparing can be cancelled. The service checks eligibility again when Confirm cancellation is clicked, including whether dispatch occurred after the review.</DocCallout></DocumentSection>
+<DocumentSection id="verify" number="04" title="Check the result in Supabase" description="The schema selector matters: chat records are not in public."><p>In this fictional example, select <code>demo_store → chats</code>. Each row contains a chat ID, status and a <code>messages</code> JSON array. Carts and pending actions are stored on that row too. Orders, line items and events are separate durable records.</p><Code text={'SELECT id, status, jsonb_array_length(messages) AS message_count, updated_at\nFROM demo_store.chats\nORDER BY updated_at DESC;'}/><p>Products and stock remain in <code>demo_catalog.products</code>. The live views normalize prices to paise for the checkout service without copying the records.</p><h3 className="doc-subheading">Run automated checks</h3><Code text={tests}/><p>The opt-in <code>setup/node/tests/run-isolated-integration.py</code> exercises actual Prisma/HTTP flows in a temporary remote schema and removes that schema afterwards. Email is mocked; it does not send real messages.</p><Link className="doc-inline-link" to="/status">Review verification coverage <ArrowRight size={15}/></Link></DocumentSection>
+<DocumentSection id="optional-tools" number="05" title="Run this documentation website"><div className="setup-optional-grid">{optionalSetupResources.map(r=><div className="setup-resource-card" key={r.title}><h3>{r.title}</h3><p>{r.text}</p><SetupLink href={r.href}>{r.label}</SetupLink></div>)}</div><Code text={'npm run dev --prefix web\nnpm run build --prefix web'}/><p>The documentation site is independent of the shopping interface. It does not authenticate customers or query private chat records.</p></DocumentSection>
+<DocumentSection id="troubleshooting" number="06" title="Resolve common issues"><div className="doc-accordion-group"><Disclosure title="The email does not arrive"><p>Check Node’s terminal for Resend acceptance or rejection. RESEND_FROM must include an email address, not only “Team Veyrix”. For the test sender, use your Resend account email. Check spam and the Resend dashboard after an accepted request; API acceptance does not guarantee inbox placement.</p></Disclosure><Disclosure title="The assistant shows the old products"><p>Check the Node health response: <code>catalog_source</code> should match your configured authoritative catalog. Confirm live-catalog.sql is applied and CATALOG_SOURCE is public. Start a fresh conversation to avoid historical references. Remove old-catalog cart items before checkout.</p></Disclosure><Disclosure title="I cannot find saved chats"><p>Choose your configured chat schema and table; demo_store.chats here is only an example. Expand the messages JSON column. The browser has no localStorage/sessionStorage transcript, and the Python worker has no persistent session store.</p></Disclosure><Disclosure title="The chat request returns 503"><p>Check all three terminals, the configured service ports, Supabase access, and Groq availability. Python’s health response should include <code>mode: stateless</code>. Node’s health response reports database reachability and email configuration.</p></Disclosure><Disclosure title="An old customer cannot retrieve their orders"><p>Legacy customer rows without email need an administrator to independently verify and link contact details. Knowing a customer name, phone or order ID alone does not grant access.</p></Disclosure><Disclosure title="Confirmation expired or stock changed"><p>Prepare a fresh summary and review it again. Confirmation lasts five minutes; prices and stock are checked during the write. An item in the cart does not reserve stock.</p></Disclosure></div></DocumentSection>
+<div className="doc-bottom-nav"><Link to="/docs">Back to Overview</Link><Link to="/architecture">Explore Architecture <ArrowRight size={16}/></Link></div></article></div></div>;}
