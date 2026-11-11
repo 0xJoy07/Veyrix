@@ -177,7 +177,8 @@ def test_waitress_runner_uses_single_process_threads_and_closes(monkeypatch):
     monkeypatch.setattr(waitress, 'serve', run)
     adapter.serve(env_path='test.env')
     factory.assert_called_once_with(env_path='test.env')
-    run.assert_called_once_with(app, host='127.0.0.1', port=8765, threads=4, max_request_body_size=MAX_BODY_BYTES)
+    from api.stateless import MAX_BODY_BYTES as STATELESS_MAX_BODY_BYTES
+    run.assert_called_once_with(app, host='127.0.0.1', port=8765, threads=4, max_request_body_size=STATELESS_MAX_BODY_BYTES)
     shutdown.assert_called_once_with()
 
 

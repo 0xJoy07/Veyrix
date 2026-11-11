@@ -29,3 +29,38 @@ button:focus-visible, a:focus-visible { outline: 2px solid #556b41; outline-offs
 }
 @media (max-width: 480px) { header > span { display: none; } .page-shell { padding-inline: 16px; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+
+.commerce-card { border: 1px solid #e4e7dd; background: #fafbf7; padding: 22px; border-radius: 18px; }
+.commerce-icon { width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; background: #e9eedf; color: #536444; border-radius: 13px; margin-bottom: 15px; }
+.commerce-card h3 { margin: 0; font-family: Georgia, 'Times New Roman', serif; font-size: 24px; font-weight: 400; letter-spacing: -0.5px; line-height: 1.25; }
+.commerce-description { font-size: 13px; line-height: 1.7; color: #686b64; margin: 9px 0 20px; }
+.commerce-form, .commerce-fields { display: grid; gap: 14px; min-width: 0; }
+.commerce-fields { margin: 0; padding: 0; border: 0; }
+.commerce-form label { display: grid; gap: 6px; font-size: 11px; font-weight: 600; line-height: 1.5; }
+.commerce-form input, .commerce-form select { width: 100%; min-width: 0; background: white; border: 1px solid #d9ded3; color: #292d25; padding: 11px 12px; border-radius: 9px; font: inherit; font-size: 14px; font-weight: 400; outline: none; }
+.commerce-form input:focus, .commerce-form select:focus { border-color: #6b8056; box-shadow: 0 0 0 3px #6b80561a; }
+.commerce-form input:disabled, .commerce-form select:disabled { opacity: 0.6; }
+.commerce-form input::placeholder { color: #92978a; }
+.commerce-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.commerce-primary { width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; background: #293325; color: white; border: 0; border-radius: 11px; padding: 12px 15px; font-size: 12px; font-weight: 600; }
+.commerce-primary:hover { background: #3c4c33; }
+.commerce-primary:disabled { opacity: 0.45; }
+.commerce-link { display: inline-flex; align-items: center; gap: 5px; color: #506442; font-size: 11px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; margin-top: 14px; margin-right: 15px; }
+.commerce-link:disabled { opacity: 0.5; }
+.commerce-note { margin: 12px 0 0; font-size: 10px; line-height: 1.7; color: #777e70; }
+.commerce-actions { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px; }
+.commerce-form .otp-input { font-size: 28px; text-align: center; letter-spacing: 0.35em; padding-left: calc(12px + 0.35em); font-variant-numeric: tabular-nums; }
+.address-options { display: grid; gap: 9px; padding: 0; border: 0; margin: 17px 0; }
+.address-option { display: flex; align-items: flex-start; gap: 10px; padding: 13px; border: 1px solid #dfe3d8; border-radius: 11px; background: white; cursor: pointer; }
+.address-option.selected { border-color: #758762; background: #f3f6ee; }
+.address-option input { margin-top: 4px; accent-color: #556b41; }
+.address-option > span { min-width: 0; display: grid; gap: 2px; font-size: 11px; line-height: 1.5; overflow-wrap: anywhere; color: #686b64; }
+.address-option strong { color: #282d25; font-size: 12px; margin-bottom: 3px; }
+.chat-id { display: flex; gap: 12px; align-items: center; justify-content: space-between; padding: 13px; margin-top: 15px; background: white; border: 1px dashed #b6c0a9; border-radius: 10px; }
+.chat-id code { font-size: 12px; overflow-wrap: anywhere; user-select: all; }
+.chat-id button { flex-shrink: 0; padding: 4px; }
+.conversation-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 6px 12px; font-size: 11px; color: #5f6c55; }
+.conversation-toolbar > div { display: flex; flex-shrink: 0; gap: 14px; }
+.conversation-toolbar button { display: flex; align-items: center; gap: 5px; }
+.conversation-toolbar button:disabled { opacity: 0.45; }
+@media (max-width: 480px) { .commerce-card { padding: 16px; } .commerce-grid { grid-template-columns: 1fr; } .commerce-card h3 { font-size: 22px; } }

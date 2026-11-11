@@ -22,3 +22,7 @@ python/**/.pytest_cache/
 __pycache__/
 .pytest_cache/
 main_setup/python/state/
+
+setup/python/state/
+setup/node/dist/
+chat/dist/

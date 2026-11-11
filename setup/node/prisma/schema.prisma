@@ -1,0 +1,129 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "postgresql"
+}
+model Product {
+  id String @id @db.VarChar(100)
+  name String @db.VarChar(250)
+  description String @default("")
+  category String @default("") @db.VarChar(100)
+  price_minor Int
+  stock Int
+  @@map("products")
+}
+model Review {
+  id String @id @db.VarChar(100)
+  product_id String @db.VarChar(100)
+  rating Int
+  text String
+  @@map("reviews")
+}
+model Customer {
+  id String @id @db.VarChar(100)
+  name String @db.VarChar(250)
+  email String? @unique @db.VarChar(254)
+  phone String? @unique @db.VarChar(20)
+  email_verified_at DateTime? @db.Timestamptz
+  @@map("customers")
+}
+model Order {
+  id String @id @db.VarChar(100)
+  customer_id String @db.VarChar(100)
+  request_id String @unique @db.VarChar(100)
+  status String @db.VarChar(30)
+  total_minor Int
+  currency String @db.VarChar(3)
+  address String
+  delivery_details Json?
+  created_at String @db.VarChar(50)
+  payment_method String @default("pay_on_delivery") @db.VarChar(30)
+  @@map("orders")
+}
+model OrderItem {
+  id String @id @db.VarChar(100)
+  order_id String @db.VarChar(100)
+  product_id String? @db.VarChar(100)
+  live_product_id Int?
+  name String @db.VarChar(250)
+  quantity Int
+  price_minor Int
+  @@map("order_items")
+}
+model OrderEvent {
+  id String @id @db.VarChar(100)
+  order_id String @db.VarChar(100)
+  event String @db.VarChar(30)
+  created_at String @db.VarChar(50)
+  @@map("order_events")
+}
+model Address {
+  id String @id @default(uuid())
+  customer_id String @db.VarChar(100)
+  details Json
+  created_at DateTime @default(now()) @db.Timestamptz
+  @@index([customer_id])
+  @@map("veyrix_addresses")
+}
+model Chat {
+  id String @id @default(uuid())
+  customer_id String @db.VarChar(100)
+  cart Json @default("{}")
+  pending Json @default("{}")
+  messages Json @default("[]")
+  status String @default("active")
+  lease_token String?
+  lease_until DateTime? @db.Timestamptz
+  created_at DateTime @default(now()) @db.Timestamptz
+  updated_at DateTime @updatedAt @db.Timestamptz
+  @@index([customer_id])
+  @@map("veyrix_chats")
+}
+model AuthSession {
+  token_hash String @id
+  customer_id String @db.VarChar(100)
+  chat_id String
+  expires_at DateTime @db.Timestamptz
+  verified_at DateTime @default(now()) @db.Timestamptz
+  @@index([customer_id])
+  @@map("veyrix_auth_sessions")
+}
+model OtpChallenge {
+  id String @id @default(uuid())
+  identity_hash String
+  ip_hash String
+  code_hash String
+  email String? @db.VarChar(254)
+  customer_id String? @db.VarChar(100)
+  profile Json @default("{}")
+  purpose String @default("login")
+  chat_id String?
+  attempts Int @default(0)
+  expires_at DateTime @db.Timestamptz
+  consumed_at DateTime? @db.Timestamptz
+  created_at DateTime @default(now()) @db.Timestamptz
+  @@index([identity_hash, created_at])
+  @@index([ip_hash, created_at])
+  @@map("veyrix_otp_challenges")
+}
+
+// Live SQL views, not materialized copies. Never create/drop these with db push.
+model LiveProduct {
+  id String @id
+  name String
+  description String
+  category String
+  brand String?
+  price_minor Int
+  stock Int
+  is_active Boolean
+  @@map("live_products")
+}
+model LiveReview {
+  id String @id
+  product_id String
+  rating Int
+  text String
+  @@map("live_reviews")
+}

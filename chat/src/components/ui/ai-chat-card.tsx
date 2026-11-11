@@ -2,11 +2,12 @@
 
 import * as React from "react";
 import { motion, useInView, useReducedMotion } from "motion/react";
-import { ArrowUp, Check, MessageCircleDashed, RefreshCw } from "lucide-react";
+import { ArrowUp, MessageCircleDashed, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTypewriter } from "@/components/ui/ai-chat-card-utils/use-typewriter";
 import { MarkdownResponse } from "@/components/ui/markdown-response";
 import { ThinkingStatus } from "@/components/ui/thinking-status";
+import { ConfirmationCard } from "@/components/confirmation-card";
 
 export interface ChatMessage {
   id: string;
@@ -31,6 +32,8 @@ export interface AIChatCardProps {
   error?: string | null;
   pending?: unknown;
   onConfirm?: () => void;
+  interaction?: React.ReactNode;
+  composerEnabled?: boolean;
 }
 
 const DEFAULT_PROMPTS = [
@@ -38,20 +41,6 @@ const DEFAULT_PROMPTS = [
   "What do customers say about these products?",
   "Show me what's in my cart",
 ];
-
-function asRecord(value: unknown): Record<string, unknown> | null {
-  return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : null;
-}
-
-function formatMoney(value: unknown, currency: unknown) {
-  if (typeof value !== "number" || !Number.isFinite(value)) return "Unavailable";
-  const code = typeof currency === "string" ? currency : "";
-  try {
-    return new Intl.NumberFormat(undefined, { style: "currency", currency: code }).format(value / 100);
-  } catch {
-    return `${code} ${(value / 100).toFixed(2)}`.trim();
-  }
-}
 
 export function AIChatCard({
   title = "New conversation",
@@ -62,7 +51,7 @@ export function AIChatCard({
   autoType = true,
   placeholder = "Ask your shopping assistant…",
   icon, onSend, onReset, className,
-  messages = [], isLoading = false, error = null, pending, onConfirm,
+  messages = [], isLoading = false, error = null, pending, onConfirm, interaction, composerEnabled = true,
 }: AIChatCardProps) {
   const rootRef = React.useRef<HTMLDivElement>(null);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
@@ -76,21 +65,15 @@ export function AIChatCard({
   const { text: typedMessage } = useTypewriter(prompts, {
     enabled: autoType && inView && !focused && !userMessage && !messages.length && !reduceMotion,
   });
-  const pendingRecord = asRecord(pending);
-  const canConfirm = !!pendingRecord?.token && !!onConfirm;
-  const cancellation = pendingRecord?.kind === "cancel";
-  const summary = asRecord(pendingRecord?.summary);
-  const items = Array.isArray(summary?.items) ? summary.items.map(asRecord).filter((item): item is Record<string, unknown> => item !== null) : [];
-
   React.useEffect(() => {
     if (scrollRef.current && nearBottom.current) {
       scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: reduceMotion ? "instant" : "smooth" });
     }
-  }, [messages, isLoading, pending, reduceMotion]);
+  }, [messages, isLoading, pending, interaction, reduceMotion]);
 
   function send() {
     const message = userMessage.trim();
-    if (!message || isLoading || !onSend) return;
+    if (!message || isLoading || !onSend || !composerEnabled) return;
     nearBottom.current = true;
     onSend(message);
     setUserMessage("");
@@ -125,7 +108,7 @@ export function AIChatCard({
         const element = scrollRef.current;
         if (element) nearBottom.current = element.scrollHeight - element.scrollTop - element.clientHeight < 80;
       }} tabIndex={0} aria-label="Scrollable conversation" className="min-h-0 flex-1 overflow-y-auto overscroll-contain focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-[#c6d0ba]">
-        {messages.length === 0 ? (
+        {messages.length === 0 && !interaction ? (
           <div className="flex min-h-[300px] h-full flex-col items-center justify-center px-7 py-12 text-center">
             <motion.div animate={reduceMotion ? undefined : { y: [0, -3, 0] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
               className="flex h-12 w-12 items-center justify-center rounded-[16px] bg-neutral-100 dark:bg-neutral-900">
@@ -155,30 +138,14 @@ export function AIChatCard({
             ))}
           </div>
         )}
+        {interaction && <div className="px-5 pb-6 pt-4 sm:px-6">{interaction}</div>}
         {isLoading && <ThinkingStatus />}
       </div>
 
       <div className="shrink-0 px-5 pb-5 sm:px-6">
-        {canConfirm && <div className="mb-3 rounded-2xl border border-border bg-neutral-50 p-3 dark:bg-neutral-900">
-          <p className="text-sm font-medium">{cancellation ? "Confirm cancellation" : "Ready to place your order?"}</p>
-          <div tabIndex={0} role="region" aria-label="Review pending action" className="mt-2 max-h-36 space-y-2 overflow-y-auto overscroll-contain pr-1 text-xs leading-5 [overflow-wrap:anywhere] focus-visible:outline-2 focus-visible:outline-offset-2">
-            {cancellation ? <p>Order ID: <span className="font-medium">{typeof pendingRecord?.order_id === "string" ? pendingRecord.order_id : "Unavailable"}</span></p> : <>
-              <ul className="space-y-1">
-                {items.map((item, index) => <li key={`${String(item.id)}-${index}`} className="flex items-start justify-between gap-3">
-                  <span className="min-w-0">{typeof item.name === "string" ? item.name : "Item"} <span className="text-muted-foreground">× {typeof item.quantity === "number" ? item.quantity : "?"}</span></span>
-                  <span className="shrink-0">{formatMoney(typeof item.price_minor === "number" && typeof item.quantity === "number" ? item.price_minor * item.quantity : null, summary?.currency)}</span>
-                </li>)}
-              </ul>
-              <div className="flex justify-between gap-3 text-muted-foreground"><span>Delivery</span><span>{formatMoney(summary?.delivery_minor, summary?.currency)}</span></div>
-              <div className="flex justify-between gap-3 border-t border-border pt-2 font-medium"><span>Total {typeof summary?.currency === "string" ? `(${summary.currency})` : ""}</span><span>{formatMoney(summary?.total_minor, summary?.currency)}</span></div>
-              <p><span className="font-medium">Deliver to: </span>{typeof summary?.address === "string" ? summary.address : "Unavailable"}</p>
-              <p className="text-muted-foreground">Payment on delivery</p>
-            </>}
-          </div>
-          <button type="button" disabled={isLoading} onClick={onConfirm} className="mt-3 flex items-center gap-2 rounded-full bg-neutral-950 px-4 py-2 text-xs font-medium text-white disabled:opacity-40 dark:bg-white dark:text-neutral-950"><Check className="h-3.5 w-3.5" />{cancellation ? "Confirm cancellation" : "Confirm order"}</button>
-        </div>}
+        <ConfirmationCard pending={pending} isLoading={isLoading} onConfirm={onConfirm}/>
         {error && <p role="alert" className="mb-3 max-h-20 overflow-y-auto rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs leading-5 text-red-800 [overflow-wrap:anywhere]">{error}</p>}
-        <form onSubmit={(event) => { event.preventDefault(); send(); }} className="rounded-[18px] bg-neutral-200/50 p-3 focus-within:ring-1 focus-within:ring-neutral-300 dark:bg-neutral-800/50">
+        {composerEnabled && <form onSubmit={(event) => { event.preventDefault(); send(); }} className="rounded-[18px] bg-neutral-200/50 p-3 focus-within:ring-1 focus-within:ring-neutral-300 dark:bg-neutral-800/50">
           <textarea ref={textareaRef} value={userMessage} onChange={(event) => setUserMessage(event.target.value)}
             onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
             onKeyDown={(event) => {
@@ -196,7 +163,7 @@ export function AIChatCard({
               <ArrowUp className="h-4 w-4" />
             </motion.button>
           </div>
-        </form>
+        </form>}
       </div>
     </div>
   );

@@ -7,6 +7,7 @@ import { loadConfig, configFiles } from './server/config.mjs';
 
 export default defineConfig(() => {
   return {
+    clearScreen: false,
     publicDir: fileURLToPath(new URL('./public', import.meta.url)),
     plugins: [react(), tailwindcss(), {
       name: 'shopping-api-bridge',

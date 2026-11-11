@@ -44,7 +44,7 @@ class OrderService:
             summary = self.summary(session, address)
             token = uid()
             session.pending = dict(token=token, kind='order', summary=summary, expires=time.monotonic()+300)
-            return dict(summary, confirmation_id=token, instruction='Use /confirm with this ID to place the order.')
+            return dict(summary, confirmation_id=token, instruction='Review the order summary and use the confirmation button to place the order.')
 
     def prepare_cancel(self, session, order_id):
         self.require_write()
@@ -54,7 +54,7 @@ class OrderService:
         token = uid()
         with session.lock:
             session.pending = dict(token=token, kind='cancel', order_id=order_id, expires=time.monotonic()+300)
-        return {'order_id': order_id, 'confirmation_id': token, 'instruction': 'Use /confirm with this ID to cancel.'}
+        return {'order_id': order_id, 'confirmation_id': token, 'instruction': 'Review the cancellation summary and use the confirmation button to cancel.'}
 
     def confirm(self, session, token):
         """Trusted UI handler only. Never expose this function as an LLM tool."""

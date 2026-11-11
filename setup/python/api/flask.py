@@ -1,9 +1,8 @@
-"""Flask HTTP adapter for the headless shopping backend.
+"""Start the stateless assistant; retain an injected legacy adapter for tests.
 
-The bearer key authenticates a trusted upstream server, which is responsible for
-verifying its end user's identity before supplying a customer ID. Never embed
-this server key in a public browser client. Sessions and memory are process-local;
-run one process (Waitress uses multiple threads) until a shared store is added.
+The bearer key authenticates the trusted Node service, which verifies the user
+and owns all persistent state through Prisma/Supabase. Never embed this server
+key in a browser. Normal startup delegates to api.stateless without a local DB.
 """
 import atexit
 import hmac
@@ -61,12 +60,17 @@ def startup_progress(event):
 
 
 def create_app(application=None, api_key=None, *, env_path=None, progress_callback=startup_progress):
-    """Create one Flask app with one main.BackendApplication for its lifetime.
+    """Create the stateless worker, or an explicitly injected legacy test adapter.
 
-    Tests can inject an application and key without network or environment access.
-    WSGI deployment can use ``api.flask:create_app()``. No GUI is imported.
+    WSGI deployment can use ``api.flask:create_app()``. The deployed default does
+    not initialize main.BackendApplication, a local database, or session memory.
     """
-    if application is None or api_key is None:
+    # The deployed worker is stateless. Explicit application injection is kept
+    # for isolated legacy tests/admin integrations, never selected by startup.
+    if application is None:
+        from api.stateless import create_stateless_app
+        return create_stateless_app(api_key=api_key, env_path=env_path)
+    if api_key is None:
         from environment import load_env_file
         load_env_file(env_path)
     key = api_key if api_key is not None else os.environ.get('SHOPPING_API_KEY', '')
@@ -210,7 +214,7 @@ def serve(env_path=None):
     except ValueError:
         raise ValueError('SHOPPING_PORT must be an integer from 1 to 65535.') from None
     from waitress import serve as run_server
-    print('[startup] Preparing backend; database and Groq checks may take a moment.', flush=True)
+    print('[startup] Preparing stateless shopping assistant; customer data stays in Supabase.', flush=True)
     app = create_app(env_path=env_path)
     # Waitress emits its actual listening address after socket creation succeeds.
     logger = logging.getLogger('waitress')
@@ -222,7 +226,8 @@ def serve(env_path=None):
         logger.propagate = False
     print('[startup] Starting HTTP listener. Keep this terminal open; Ctrl+C stops the server.', flush=True)
     try:
-        run_server(app, host=host, port=port, threads=4, max_request_body_size=MAX_BODY_BYTES)
+        from api.stateless import MAX_BODY_BYTES as STATELESS_MAX_BODY_BYTES
+        run_server(app, host=host, port=port, threads=4, max_request_body_size=STATELESS_MAX_BODY_BYTES)
     finally:
         app.extensions['shopping_shutdown']()
 
