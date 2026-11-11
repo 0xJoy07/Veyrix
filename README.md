@@ -5,20 +5,21 @@ Conversational commerce, connected to your business.
 Veyrix is a headless shopping-agent backend powered by Flask, LangChain and Groq.
 It supports catalog/review questions, carts, explicit pay-on-delivery order
 confirmation and eligible cancellations. Configuration and credentials come from
-environment variables or an optional `.env` file. No desktop interface or chat
-frontend is included in the current backend flow.
+environment variables or an optional `.env` file. A local demo chat frontend is
+available in `chat/`.
 
 ## Repository layout
 
-- `main_setup/python/`: Flask server, application orchestration, database connectors,
+- `setup/python/`: Flask server, application orchestration, database connectors,
   environment configuration, session memory, shopping tools and automated tests.
-- `main_setup/node/`: Express/TypeScript scaffold, not yet connected.
-- `main_setup/client/web/`: customer-interface scaffold, not yet connected.
+- `setup/node/`: Express/TypeScript scaffold, not yet connected.
+- `setup/client/web/`: customer-interface scaffold, not yet connected.
 - `web/`: separate React documentation website; it does not call the shopping API.
+- `chat/`: React/TypeScript shopping chat with a private server-side API bridge.
 
 ## Start the backend
 
-Use Python 3.12. From `main_setup/python`:
+Use Python 3.12. From `setup/python`:
 
 ```powershell
 python -m venv .venv
@@ -71,7 +72,7 @@ that session ID with the next message:
 History and current catalog data are supplied by the backend. Clients cannot
 inject history/data or change an existing session's customer ID. Reset, close and
 explicit confirmation routes are documented in the
-[Python API guide](main_setup/python/README.md).
+[Python API guide](setup/python/README.md).
 
 Memory stays in RAM until reset/close or process shutdown by default. The model
 sees recent turns and can search older session history. Use one server process
@@ -87,18 +88,22 @@ arbitrary business schemas are not automatically rewritten.
 From the repository root:
 
 ```powershell
-.\main_setup\python\.venv\Scripts\python.exe -m pytest main_setup/python/tests -q
+.\setup\python\.venv\Scripts\python.exe -m pytest setup/python/tests -q
 ```
 
 Tests use isolated SQLite databases and mocked Groq responses. Live provider and
 hosted-database checks require your own credentials. PostgreSQL integration is
 opt-in, and MySQL has schema-compilation coverage without a live-server guarantee.
 
-See the [Python configuration and API guide](main_setup/python/README.md),
-[implementation report](main_setup/python/IMPLEMENTATION_REPORT.md),
-[Express scaffold](main_setup/node/README.md), and
-[customer-interface scaffold](main_setup/client/web/README.md).
+See the [Python configuration and API guide](setup/python/README.md),
+[implementation report](setup/python/IMPLEMENTATION_REPORT.md),
+[Express scaffold](setup/node/README.md), and
+[customer-interface scaffold](setup/client/web/README.md).
 
 The documentation website can be run separately with `npm install --prefix web`
-and `npm run dev --prefix web`; see [its README](web/README.md). Frontend chat
-implementation and integration remain deferred.
+and `npm run dev --prefix web`; see [its README](web/README.md).
+
+For the connected demo chat, see [the demo chat guide](chat/README.md).
+Run `npm install --prefix chat`, configure `chat/.env` from its example,
+then run `npm run dev --prefix chat`. Keep the Python backend running in a
+separate terminal. The demo uses a configured customer and is local-only.
