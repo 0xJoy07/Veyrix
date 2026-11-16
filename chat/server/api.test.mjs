@@ -4,6 +4,23 @@ import { createServer } from 'node:http';
 import { once } from 'node:events';
 import { createApiMiddleware } from './api.mjs';
 
+test('same-origin localhost login preserves Origin and still rejects another browser origin', async t => {
+  let forwarded, calls=0;
+  const server=createServer(createApiMiddleware({fetchImpl:async (_url,options)=>{
+    forwarded=options.headers;calls++;
+    return Response.json({error:{code:'invalid_request'}},{status:400});
+  }}));
+  server.listen(0,'127.0.0.1');await once(server,'listening');
+  t.after(()=>new Promise(resolve=>{server.close(resolve);server.closeAllConnections();}));
+  const port=server.address().port;
+  const send=origin=>fetch(`http://localhost:${port}/api/auth/start`,{method:'POST',
+    headers:{Origin:origin,'Content-Type':'application/json','Sec-Fetch-Site':'same-origin'},body:'{}'});
+  assert.equal((await send(`http://localhost:${port}`)).status,400);
+  assert.equal(forwarded.Origin,`http://localhost:${port}`);
+  assert.equal((await send('https://attacker.example')).status,403);
+  assert.equal(calls,1);
+});
+
 async function fixture(t, fetchImpl) {
   const server = createServer(createApiMiddleware({ fetchImpl }));
   server.listen(0, '127.0.0.1');

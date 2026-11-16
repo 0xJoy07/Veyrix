@@ -65,7 +65,9 @@ in `RESEND_API_KEY` and `RESEND_FROM`. Never put credentials in `VITE_*` variabl
 characters. Share only the appropriate service keys with the Python worker.
 
 The service listens on `127.0.0.1:8001` by default. The chat frontend proxies its
-`/api/*` requests here. `PUBLIC_ORIGIN` must exactly match the browser origin.
+`/api/*` requests here. `PUBLIC_ORIGIN` must match the browser origin. For a configured loopback origin,
+`localhost`, `127.0.0.1` and `[::1]` are accepted as local aliases on the same
+protocol and port; other hosts and ports remain blocked.
 For production HTTPS set `COOKIE_SECURE=true`; keep `/internal/*` private.
 The health response reports whether email settings are present. Missing mail
 settings prevent verification rather than silently using a local/demo identity.

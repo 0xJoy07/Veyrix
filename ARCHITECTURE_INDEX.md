@@ -66,6 +66,7 @@ Failures after dispatch use `request_outcome_unknown`, since a cart tool may alr
 | `src/database-config.ts` | Shared schema-name allowlist: a simple SQL identifier of 1–63 characters, defaulting to `shopping_agent`. Used by runtime connection and configuration validation. |
 | `src/chat-stream.ts` | SSE response helper with fixed progress stages, 15-second heartbeat, committed final result, sanitized errors and disconnect cleanup. Never streams raw provider/tool data. |
 | `src/store.ts` | Prisma PostgreSQL adapter/pool, schema selection and verified TLS. Provides serializable transaction retries, JSON helpers and owned-chat checks. |
+| `src/request-origin.ts` | Validates browser origins; configured loopback host aliases share only the same protocol and port. Foreign hosts, malformed origins and other ports remain blocked. |
 | `src/security.ts` | Cryptographic tokens, SHA/HMAC, timing-safe comparison, OTP generation and expiry constants; structured errors; email, Indian phone/address validation; cancellation eligibility. |
 | `src/auth.ts` | OTP start/verify, persisted identity/IP rate limits, customer resolution, hashed-token auth sessions, new/restored chats, cookie authentication and public account state. |
 | `src/commerce.ts` | Address management, cart tools, live catalog access, checkout/cancellation review, owned order lookup, idempotent transactional confirmation and stock updates. Acquires a three-minute chat-turn lease, forwards verified history to Python, saves successful turns and releases leases on completion/failure. |

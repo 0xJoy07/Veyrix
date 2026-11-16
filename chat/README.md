@@ -11,7 +11,7 @@ npm install
 npm run dev
 ```
 
-Open http://127.0.0.1:5174. Optional `chat/.env` setting `COMMERCE_API_URL` defaults to `http://127.0.0.1:8001`. The proxy forwards only supported public API routes and the HttpOnly session cookie; it does not store identities, transcripts or sessions, and does not inject a demo customer.
+Open http://127.0.0.1:5174 or http://localhost:5174. Local host aliases are accepted by the backend on the configured port; keep using the same address after signing in because cookies are host-specific. Optional `chat/.env` setting `COMMERCE_API_URL` defaults to `http://127.0.0.1:8001`. The proxy forwards only supported public API routes and the HttpOnly session cookie; it does not store identities, transcripts or sessions, and does not inject a demo customer.
 
 ## Experience
 

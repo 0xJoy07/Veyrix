@@ -8,6 +8,7 @@ import { validSender } from './email.js';
 import { account, authenticate, startAuth, verifyAuth } from './auth.js';
 import { addAddress, assertNotBusy, chat, chatMessageSchema, confirm, lookupOrder, prepareCancel, prepareCheckout, tool } from './commerce.js';
 import { streamChat } from './chat-stream.js';
+import { isAllowedOrigin } from './request-origin.js';
 
 export function createApp(config: Config) {
   const app = express();
@@ -22,7 +23,7 @@ export function createApp(config: Config) {
     res.setHeader('Cache-Control','no-store'); res.setHeader('X-Content-Type-Options','nosniff');
     if(req.path.startsWith('/api/') && !['GET','HEAD'].includes(req.method)) {
       const origin=req.headers.origin;
-      if((origin && origin!==config.publicOrigin) || req.headers['sec-fetch-site']==='cross-site') return next(new ApiError(403,'invalid_origin','Cross-origin requests are not allowed.'));
+      if((origin && !isAllowedOrigin(origin,config.publicOrigin)) || req.headers['sec-fetch-site']==='cross-site') return next(new ApiError(403,'invalid_origin',`This address is not enabled for sign-in. Open the shopping app at ${config.publicOrigin}.`));
     }
     next();
   });
