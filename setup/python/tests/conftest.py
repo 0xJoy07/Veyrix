@@ -25,4 +25,10 @@ def runtime(tmp_path):
 
 @pytest.fixture
 def session(runtime):
-    return runtime.sessions.get(runtime.sessions.create('alice'))
+    return make_session('alice')
+
+
+def make_session(customer_id):
+    from types import SimpleNamespace
+    from threading import RLock
+    return SimpleNamespace(customer_id=customer_id, cart={}, pending={}, lock=RLock())

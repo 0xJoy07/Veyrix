@@ -1,0 +1,68 @@
+.site-preloader {
+  --panel-close-dur: 350ms;
+  --panel-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  background: #000;
+  color: #d6d6d6;
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity var(--panel-close-dur) var(--panel-ease), transform var(--panel-close-dur) var(--panel-ease);
+}
+.site-preloader[data-open="false"] {
+  opacity: 0;
+  transform: translateY(-24px);
+  pointer-events: none;
+}
+.site-preloader .neon-hello-caption {
+  bottom: auto !important;
+  top: calc(47.8% + min(12vw, 30dvh) + clamp(16px, 3vh, 28px));
+}
+.site-preloader-welcome {
+  margin: 0;
+  padding-inline: 12px;
+  color: #d6d6d6;
+  font-family: var(--font-sans, 'Inter Variable', sans-serif);
+  font-size: clamp(10px, 1.15vw, 15px);
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: clamp(2px, 0.4vw, 5px);
+  white-space: nowrap;
+  text-align: center;
+  animation: veyrix-welcome 450ms ease-out 1250ms both;
+}
+.site-preloader-skip {
+  position: absolute;
+  right: max(24px, env(safe-area-inset-right));
+  bottom: max(24px, env(safe-area-inset-bottom));
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid #555;
+  border-radius: 999px;
+  background: #090909;
+  color: #d6d6d6;
+  font: 400 12px var(--font-sans, 'Inter Variable', sans-serif);
+  cursor: pointer;
+}
+.site-preloader-skip:hover { border-color: #9daeff; color: #fff; }
+.site-preloader-skip:focus-visible { outline: 2px solid #9daeff; outline-offset: 4px; }
+@keyframes veyrix-welcome {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (max-height: 420px) {
+  .site-preloader .neon-hello-caption { top: 80%; }
+  .site-preloader-skip { right: 12px; top: 8px; bottom: auto; padding: 8px 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .site-preloader { transition: none !important; }
+  .site-preloader-welcome { animation: none !important; }
+}

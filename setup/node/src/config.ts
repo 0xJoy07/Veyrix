@@ -1,10 +1,12 @@
 import 'dotenv/config';
+import { databaseSchema } from './database-config.js';
 export function loadConfig(env = process.env) {
   for (const key of ['DATABASE_URL','DIRECT_URL','OTP_SECRET','INTERNAL_API_KEY','SHOPPING_API_KEY']) {
     if (!env[key]?.trim()) throw new Error(`Set ${key} in setup/node/.env.`);
   }
   for (const key of ['OTP_SECRET','INTERNAL_API_KEY','SHOPPING_API_KEY']) if (env[key]!.length < 32 || /\s/.test(env[key]!)) throw new Error(`${key} must contain at least 32 characters without whitespace.`);
   const db = new URL(env.DATABASE_URL!);
+  databaseSchema(db);
   if (!['postgres:', 'postgresql:'].includes(db.protocol) || ['localhost','127.0.0.1','[::1]'].includes(db.hostname)) throw new Error('DATABASE_URL must connect to remote Supabase PostgreSQL; local persistence is disabled.');
   const deliveryMinor = Number(env.DELIVERY_MINOR || 0);
   if (!Number.isSafeInteger(deliveryMinor) || deliveryMinor < 0) throw new Error('DELIVERY_MINOR must be a nonnegative integer.');

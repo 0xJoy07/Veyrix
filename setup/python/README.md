@@ -4,8 +4,51 @@ The Python process is now a private, stateless Groq worker. The TypeScript servi
 in `../node` owns customer authentication, email verification, chats, carts,
 addresses, orders, cancellations and all persistence through Prisma/Supabase.
 The running Python server does not create a local database, transcript, customer
-cache or in-memory session store. Request context exists only while processing
+cache or persistent Python session store. LangChain checkpoint memory exists only while processing
 a request. No OTP or API key belongs in model messages.
+
+## Agent and conversation memory
+
+`agent/stateless.py` creates the agent with `langchain.agents.create_agent`.
+LangChain runs the model/tool loop; `ChatGroq` supplies the model and `@tool`
+functions call the existing authenticated Node commerce service. Middleware
+limits each agent run to six model calls and ten tool calls. Tools run serially
+(`max_concurrency=1`) so cart mutations retain their requested order. A separate
+scope-classification model call happens before
+agent creation for general requests. Known non-reasoning Llama 3.1 8B and Llama 3.3
+70B models use an eight-token completion budget. GPT-OSS models use 512 tokens
+and low reasoning effort; unknown models use a conservative 512-token budget
+without unsupported reasoning parameters. GPT-OSS agent calls also default to
+low effort; `GROQ_REASONING_EFFORT=low|medium|high` optionally overrides the agent
+setting only for GPT-OSS 20B/120B. Other models reject this override. Scope calls
+always keep low effort; the main agent retains its 1,500-token output budget.
+Exact standalone greetings/thanks use a
+fixed reply; exact cart-read phrases fetch the authenticated live cart and format
+its validated facts without a model call. Additional text, identity changes,
+SQL-like suffixes, and all mutations use the normal scope/agent path.
+
+The agent receives at most 20 historical messages, 4,000 characters per message
+and 24,000 characters in total. Scope classification receives at most six recent
+messages and 6,000 characters. Full transcripts remain unchanged in Supabase.
+Tool observations are compact valid JSON bounded to 16,000 characters; oversized
+prose/items are explicitly marked partial, while retained IDs and numeric facts
+are preserved. The assistant logs only fixed stage names and elapsed milliseconds,
+never customer IDs, prompts, tool results, or secrets. An optional progress callback
+emits only `checking`, `thinking`, `tools`, and `finishing` for a streaming adapter.
+
+Short-term memory uses LangGraph `InMemorySaver`, keyed by the verified chat ID
+and scoped to one HTTP request. Node supplies the persisted conversation; the
+latest 20 messages hydrate the agent state. Checkpoints retain messages and tool
+results between graph steps and are deleted in `finally`, including on failure.
+Supabase remains the durable conversation store and restores context after
+restarts. This is not a persistent Python checkpoint database or a cross-chat
+preference memory. Full transcripts remain in Supabase; only bounded recent
+context reaches the model.
+
+The obsolete custom agent loop, RAM session store, local tool wrappers and
+injected legacy HTTP adapter have been removed. Explicit SQL administration
+commands (`check`, `init-db`, `import`, `customer`) remain separate from the
+running worker and must not be used to provision the current Supabase app.
 
 ## Start
 
@@ -85,7 +128,7 @@ From the repository root:
 .\setup\python\.venv\Scripts\python.exe -m pytest setup/python/tests -q
 ```
 
-The stateless worker tests use mocked model and commerce calls. The legacy
+The worker tests execute the real LangChain graph with a deterministic chat model and mocked commerce calls, including an actual loopback HTTP request. The legacy
 SQLAlchemy/admin modules remain for isolated compatibility tests and explicit
 administrative import utilities; they are not loaded as a runtime store by the
 new HTTP startup. Do not run legacy `init-db`, imports or customer-registration

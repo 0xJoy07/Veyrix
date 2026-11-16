@@ -6,7 +6,7 @@ Conversational commerce with verified customers, interactive checkout, and Supab
 
 - `chat/`: React interface and same-origin API proxy, port 5174. No demo identity or server-side session map.
 - `setup/node/`: TypeScript commerce service with Prisma, port 8001. Owns customers, email OTPs, sessions, saved addresses, chats, carts, orders and cancellations in Supabase.
-- `setup/python/`: Stateless Groq shopping assistant (this workspace uses port 8002; SHOPPING_PORT controls it). Receives verified conversation context per request and calls the private commerce tools. Its default server does not open a local database or use the legacy memory store.
+- `setup/python/`: LangChain shopping agent using Groq (this workspace uses port 8002; SHOPPING_PORT controls it). `langchain.agents.create_agent` runs the tools with request-scoped LangGraph checkpoint memory, seeded from verified conversation history. Supabase remains the durable transcript store; Python does not retain customer sessions between requests.
 - `web/`: Separate documentation website.
 
 Request flow: browser → Node commerce service → Python assistant → private Node tools → Supabase.
@@ -43,6 +43,22 @@ Checkout uses saved-address selection or an interactive address form. Recipient 
 Ending a chat shows a farewell and its chat ID. Restore uses the ID plus a fresh email verification challenge tied to the owner and requested conversation. Conversations, carts and pending actions live in Supabase, not a local database, browser storage or server session map. Browser component state and request-scoped objects exist only while displaying/processing data.
 
 The assistant answers shopping-related questions, redirects unrelated requests, and uses UI controls instead of slash commands. It cannot commit an order through a model tool or a conversational “yes”.
+
+Exact greetings, thanks and simple cart-view requests take a deterministic fast path;
+other requests use bounded model context and compact tool results. Chat streams
+fixed progress stages while working, then returns the final answer only after
+the conversation is saved. This is progress streaming, not raw model-token streaming.
+Server logs record stage durations without message contents. Live-provider latency
+still depends on Groq, tools and database connectivity.
+
+Classifier token budgets account for reasoning models. GPT-OSS defaults to low
+reasoning effort; optional `GROQ_REASONING_EFFORT` accepts `low`, `medium` or `high`
+for supported GPT-OSS models. Failed replies after dispatch may have already
+changed the cart, so the UI asks customers to check saved state instead of retrying.
+
+Database access uses parameterized Prisma/SQLAlchemy operations and an allowlist
+for configured schema identifiers. Regression tests exercise SQL-looking inputs
+and ownership checks; the source audit found no confirmed SQL injection issue.
 
 ## Verification
 

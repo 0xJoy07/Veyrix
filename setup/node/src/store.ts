@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { rootCertificates } from 'node:tls';
 import 'dotenv/config';
 import { ApiError } from './security.js';
+import { databaseSchema } from './database-config.js';
 // The unreachable placeholder lets dependency-injected unit tests import the
 // client without credentials. Production config requires DATABASE_URL before use.
 const connectionString = process.env.DATABASE_URL || 'postgresql://test:test@database.invalid/test';
@@ -12,7 +13,7 @@ function parseDatabaseUrl(value: string) {
   catch { throw new Error('DATABASE_URL is invalid. Check the server environment configuration.'); }
 }
 const databaseUrl = parseDatabaseUrl(connectionString);
-const schema = databaseUrl.searchParams.get('schema') || 'shopping_agent';
+const schema = databaseSchema(databaseUrl);
 const configuredCa = process.env.DATABASE_SSL_CA || databaseUrl.searchParams.get('sslrootcert');
 const hostedSupabase = /\.(supabase\.co|pooler\.supabase\.com)$/.test(databaseUrl.hostname);
 const ca = configuredCa ? readFileSync(configuredCa,'utf8') : hostedSupabase ? readFileSync(new URL('../certs/supabase-prod-ca-2021.crt',import.meta.url),'utf8') : undefined;

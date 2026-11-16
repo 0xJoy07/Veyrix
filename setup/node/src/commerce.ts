@@ -192,29 +192,57 @@ export async function tool(body: unknown) {
     }
   });
 }
-export async function chat(session: AuthSession, body: unknown, config: Config) {
-  const {message}=z.object({message:z.string().trim().min(1).max(8000)}).strict().parse(body);
+export const chatMessageSchema = z.object({message:z.string().trim().min(1).max(8000)}).strict();
+export type ChatStage = 'checking' | 'working' | 'saving';
+export async function chat(session: AuthSession, body: unknown, config: Config, progress?: (stage: ChatStage) => void) {
+  const started=performance.now();
+  const timings:Record<string,number>={};
+  const {message}=chatMessageSchema.parse(body);
   const lease=randomUUID();
   const before=await transaction(async tx=>{
     const current=await ownedChat(tx,session.chat_id,session.customer_id); active(current); assertNotBusy(current);
+    // Only load fields needed for this turn; account() also fetched all saved
+    // addresses and the full transcript, which are not needed to authorize chat.
+    const customer=await tx.customer.findUnique({where:{id:session.customer_id},select:{phone:true,name:true,email_verified_at:true}});
+    if(!customer?.email_verified_at || session.expires_at.getTime()<=Date.now()) throw new ApiError(401,'verification_required','Verify your email to continue.');
+    if(!customer.phone || customer.name==='Customer') throw new ApiError(400,'profile_required','Complete your name and mobile number to continue.');
     await tx.chat.update({where:{id:current.id},data:{lease_token:lease,lease_until:new Date(Date.now()+180000)}});
     return current;
   });
+  timings.prepare_ms=Math.round(performance.now()-started);
+  let leaseReleased=false;
+  let assistantDispatched=false;
   try {
+    progress?.('working');
     const history=json<Message[]>(before.messages).slice(-20).map(entry=>({...entry,content:entry.content.slice(0,8000)}));
     const payload={chat_id:before.id,customer_id:session.customer_id,turn_id:lease,message,history};
     while(history.length && Buffer.byteLength(JSON.stringify(payload),'utf8')>128*1024) history.shift();
-    const response=await fetch(new URL('/api/respond',config.pythonUrl),{method:'POST',headers:{Authorization:`Bearer ${config.pythonKey}`,'Content-Type':'application/json'},body:JSON.stringify(payload),signal:AbortSignal.timeout(150000)});
+    const assistantStarted=performance.now();
+    assistantDispatched=true;
+    const response=await fetch(new URL('/api/respond',config.pythonUrl),{method:'POST',headers:{Authorization:`Bearer ${config.pythonKey}`,'Content-Type':'application/json'},body:JSON.stringify(payload),signal:AbortSignal.timeout(150000),redirect:'error'});
     if(!response.ok) throw new ApiError(503,'provider_unavailable','The shopping assistant is unavailable. Please try again.');
     const result=z.object({answer:z.string().max(32000),action:z.enum(['checkout']).optional()}).parse(await response.json());
-    return await transaction(async tx=>{
+    timings.assistant_ms=Math.round(performance.now()-assistantStarted);
+    progress?.('saving');
+    const saveStarted=performance.now();
+    const saved=await transaction(async tx=>{
       const current=await ownedChat(tx,session.chat_id,session.customer_id);
       if(current.lease_token!==lease) throw new ApiError(409,'request_expired','The conversation request expired. Please try again.');
       await tx.chat.update({where:{id:current.id},data:{messages:jsonData([...json<Message[]>(current.messages),{role:'user',content:message},{role:'assistant',content:result.answer}]),lease_token:null,lease_until:null}});
       return {...result,pending:current.pending,chat_id:current.id};
     });
+    leaseReleased=true; // The committed transcript update already clears the lease.
+    timings.save_ms=Math.round(performance.now()-saveStarted);
+    return saved;
   } catch(error) {
+    // A tool may have changed the cart even if the model or transcript save
+    // failed afterwards. Replaying "add one more" could apply it twice.
+    if(assistantDispatched) throw new ApiError(503,'request_outcome_unknown','The reply could not be completed, but your cart may have changed. Reload the conversation and check your cart before sending again.');
     if(error instanceof ApiError) throw error;
     throw new ApiError(503,'provider_unavailable','The shopping assistant is unavailable. Please try again.');
-  } finally {await db.chat.updateMany({where:{id:before.id,lease_token:lease},data:{lease_token:null,lease_until:null}});}
+  } finally {
+    try {if(!leaseReleased) await db.chat.updateMany({where:{id:before.id,lease_token:lease},data:{lease_token:null,lease_until:null}});}
+    catch {console.error('Chat lease cleanup failed; the lease will expire.');}
+    finally {console.log('[chat-timing]',JSON.stringify({...timings,total_ms:Math.round(performance.now()-started)}));}
+  }
 }

@@ -29,6 +29,7 @@ export interface AIChatCardProps {
   className?: string;
   messages?: ChatMessage[];
   isLoading?: boolean;
+  loadingLabel?: string;
   error?: string | null;
   pending?: unknown;
   onConfirm?: () => void;
@@ -51,7 +52,7 @@ export function AIChatCard({
   autoType = true,
   placeholder = "Ask your shopping assistant…",
   icon, onSend, onReset, className,
-  messages = [], isLoading = false, error = null, pending, onConfirm, interaction, composerEnabled = true,
+  messages = [], isLoading = false, loadingLabel, error = null, pending, onConfirm, interaction, composerEnabled = true,
 }: AIChatCardProps) {
   const rootRef = React.useRef<HTMLDivElement>(null);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
@@ -139,7 +140,7 @@ export function AIChatCard({
           </div>
         )}
         {interaction && <div className="px-5 pb-6 pt-4 sm:px-6">{interaction}</div>}
-        {isLoading && <ThinkingStatus />}
+        {isLoading && <ThinkingStatus label={loadingLabel} />}
       </div>
 
       <div className="shrink-0 px-5 pb-5 sm:px-6">

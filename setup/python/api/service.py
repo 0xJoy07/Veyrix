@@ -3,20 +3,16 @@
 This is an in-process API. Customer IDs are trusted local administrator inputs,
 not authentication for a public HTTP service.
 """
-import copy
 import json
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from decimal import InvalidOperation
-from threading import Lock
 
 from sqlalchemy import inspect, select, text
 
-from agent.agent import ShoppingAgent, ProviderUnavailable
 from agent.llm_client import make_model
 from db.importers.files import integer
 from db.models import customers, reviews
-from memory.chat_memory import add_turn
 from runtime import Runtime
 from services.errors import describe_error
 
@@ -168,51 +164,3 @@ def prepare_application(config, secrets, progress_callback=None, *, verify_groq=
         message = str(exc) if isinstance(exc, ValueError) else describe_error(exc)
         emit(current_step, 'failed', message)
         raise ValueError(message) from None
-
-
-class ShoppingAPI:
-    """Session and chat operations for trusted local clients."""
-    def __init__(self, runtime, model=None):
-        self.runtime = runtime
-        self.model = model
-        self._agent = None
-        self._agent_lock = Lock()
-
-    def start_session(self, customer_id):
-        if not isinstance(customer_id, str) or not customer_id.strip() or len(customer_id) > 100:
-            raise ValueError('Provide a customer ID between 1 and 100 characters.')
-        if self.runtime.orders.can_write:
-            with self.runtime.engine.connect() as conn:
-                exists = conn.execute(select(customers.c.id).where(customers.c.id == customer_id)).first()
-            if not exists:
-                raise ValueError('Unknown demo customer. Register this customer before starting chat.')
-        return self.runtime.sessions.create(customer_id)
-
-    def chat(self, session_id, text, *, raise_provider_errors=False):
-        with self.runtime.sessions.use(session_id) as session:
-            with self._agent_lock:
-                if self._agent is None:
-                    try:
-                        self._agent = ShoppingAgent(self.runtime, self.model)
-                    except Exception:
-                        if raise_provider_errors:
-                            raise ProviderUnavailable('The chat provider is unavailable. Try again later.') from None
-                        raise
-            answer = self._agent.chat(session_id, text, raise_provider_errors=raise_provider_errors)
-            return dict(session_id=session_id, answer=answer, pending=copy.deepcopy(session.pending))
-
-    def confirm(self, session_id, token):
-        with self.runtime.sessions.use(session_id) as session:
-            result = self.runtime.orders.confirm(session, token)
-            add_turn(session, '/confirm ' + token, 'Verified database result: ' + json.dumps(result))
-            return result
-
-    def reset_session(self, session_id):
-        with self.runtime.sessions.use(session_id) as session:
-            customer_id = session.customer_id
-            new_id = self.start_session(customer_id)
-            self.runtime.sessions.close(session_id)
-            return new_id
-
-    def close_session(self, session_id):
-        self.runtime.sessions.close(session_id)

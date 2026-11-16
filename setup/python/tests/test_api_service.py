@@ -5,7 +5,7 @@ import pytest
 from langchain_core.messages import AIMessage, HumanMessage
 from sqlalchemy import MetaData, Table, Column, Integer, String, Numeric
 
-from api import ShoppingAPI, prepare_application
+from api import prepare_application
 from api import service
 from db.models import products, reviews
 
@@ -42,7 +42,7 @@ def test_prepare_fetches_full_catalog_and_reports_progress(runtime, monkeypatch)
     finally:
         prepared.close()
         prepared.close()
-    assert prepared.runtime.sessions.stopped.is_set()
+    assert prepared.runtime.closed
 
 
 def test_provider_failure_closes_runtime_and_redacts_provider_error(runtime, monkeypatch):
@@ -64,7 +64,7 @@ def test_provider_failure_closes_runtime_and_redacts_provider_error(runtime, mon
     with pytest.raises(ValueError, match='Groq validation failed') as error:
         prepare_application(runtime.config, runtime.secrets, events.append)
     assert 'private-test-key' not in str(error.value) + json.dumps(events)
-    assert created[0].sessions.stopped.is_set()
+    assert created[0].closed
     assert events[-1]['status'] == 'failed' and events[-1]['step'] == 'groq'
     assert not any(event['step'] == 'ready' for event in events)
 
@@ -114,57 +114,3 @@ def test_fetch_limit_fails_instead_of_silently_truncating(runtime, monkeypatch):
         prepare_application(runtime.config, runtime.secrets, events.append, verify_groq=False)
     assert events[-1]['status'] == 'failed'
     assert not any(event['step'] == 'ready' for event in events)
-
-
-class RememberingModel:
-    def __init__(self):
-        self.messages = []
-
-    def bind_tools(self, tools):
-        return self
-
-    def invoke(self, messages):
-        self.messages = messages
-        return AIMessage(content='I remember your preference.')
-
-
-def test_api_reuses_history_and_reset_ends_previous_session(runtime):
-    model = RememberingModel()
-    api = ShoppingAPI(runtime, model=model)
-    sid = api.start_session('alice')
-    api.chat(sid, 'I prefer blue shoes')
-    result = api.chat(sid, 'What color did I prefer?')
-    assert result['session_id'] == sid
-    assert any(isinstance(m, HumanMessage) and m.content == 'I prefer blue shoes' for m in model.messages)
-    old = runtime.sessions.get(sid)
-    new_sid = api.reset_session(sid)
-    assert new_sid != sid and not old.history
-    with pytest.raises(ValueError, match='expired'):
-        runtime.sessions.get(sid)
-    assert not runtime.sessions.get(new_sid).history
-    api.close_session(new_sid)
-    with pytest.raises(ValueError, match='expired'):
-        runtime.sessions.get(new_sid)
-
-
-def test_api_rejects_unknown_customer_and_isolates_sessions(runtime):
-    api = ShoppingAPI(runtime, model=RememberingModel())
-    with pytest.raises(ValueError, match='Unknown demo customer'):
-        api.start_session('unknown')
-    alice = api.start_session('alice')
-    bob = api.start_session('bob')
-    api.chat(alice, 'Only Alice said this')
-    assert runtime.sessions.get(alice).history
-    assert not runtime.sessions.get(bob).history
-
-
-def test_api_confirmation_records_verified_result(runtime):
-    api = ShoppingAPI(runtime, model=RememberingModel())
-    sid = api.start_session('alice')
-    session = runtime.sessions.get(sid)
-    runtime.cart.set_item(session, 'p1', 1)
-    pending = runtime.orders.prepare(session, '123 Test Road')
-    result = api.confirm(sid, pending['confirmation_id'])
-    assert result['status'] == 'confirmed'
-    assert 'Verified database result' in session.history[-1][1]
-    assert not session.pending

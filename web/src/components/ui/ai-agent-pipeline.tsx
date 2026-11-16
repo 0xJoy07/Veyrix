@@ -1,5 +1,6 @@
-import { Play, Pause, StepForward, ArrowDown, MessageSquare, Layers3, Bot, Database, ShoppingCart, ClipboardCheck } from "lucide-react";
 "use client"
+
+import { Play, Pause, StepForward, ArrowDown, MessageSquare, Layers3, Bot, Database, ShoppingCart, ClipboardCheck } from "lucide-react";
 
 import { createContext, useContext, useEffect, useId, useState } from "react"
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
@@ -8,7 +9,7 @@ const PausedContext = createContext(false)
 const messages = [
   'Customer: "Help me find walking shoes within my budget."',
   'Session: load verified history and cart from Supabase.',
-  'Agent: select a catalog tool using LangChain and Groq.',
+  'Agent: LangChain create_agent selects tools; LangGraph tracks this request’s messages.',
   'Catalog: read matching products, prices, and stock from SQL.',
   'Reviews: retrieve available customer feedback.',
   'Cart: validate requested quantities against stock.',
@@ -147,7 +148,7 @@ export default function EnterpriseAIPipeline() {
           </span>
         </div>
         <span className="text-[10px] text-white/55 font-sans">
-          Local shopping agent
+          LangChain shopping agent
         </span>
       </div>
 
@@ -313,7 +314,7 @@ export default function EnterpriseAIPipeline() {
           fill="rgba(255,255,255,0.55)"
           fontFamily="Inter Variable, sans-serif"
         >
-          in memory
+          Supabase
         </text>
 
         {/* LLM Agent Node */}
@@ -435,7 +436,7 @@ export default function EnterpriseAIPipeline() {
       <div className="pipeline-mobile" aria-label="Shopping agent workflow">
         <div className="pipeline-mobile-node"><MessageSquare size={18} aria-hidden="true"/><div><span>Customer</span><strong>Shopping query</strong></div><small>Web chat</small></div>
         <ArrowDown className="pipeline-mobile-connector" size={18} aria-hidden="true"/>
-        <div className="pipeline-mobile-node"><Layers3 size={18} aria-hidden="true"/><div><span>Session</span><strong>History + cart</strong></div><small>In memory</small></div>
+        <div className="pipeline-mobile-node"><Layers3 size={18} aria-hidden="true"/><div><span>Session</span><strong>History + cart</strong></div><small>Supabase</small></div>
         <ArrowDown className="pipeline-mobile-connector" size={18} aria-hidden="true"/>
         <div className="pipeline-mobile-node pipeline-mobile-agent"><Bot size={20} aria-hidden="true"/><div><span>LLM agent</span><strong>Tool selection</strong></div><small>LangChain / Groq</small></div>
         <ArrowDown className="pipeline-mobile-connector" size={18} aria-hidden="true"/>
@@ -469,7 +470,7 @@ export default function EnterpriseAIPipeline() {
 
       <div className="pipeline-footer">
         <div><span>EXAMPLE STEP</span><strong>{String(messageIndex + 1).padStart(2, '0')} / {messages.length}</strong></div>
-        <div><span>STACK</span><strong>LangChain · Groq · SQL</strong></div>
+        <div><span>STACK</span><strong>LangChain · LangGraph · Groq</strong></div>
         <div className="pipeline-controls">
           <button type="button" className="pipeline-playback" disabled={!!reducedMotion} onClick={() => setPaused(value => !value)}><span className="playback-icon" aria-hidden="true">{stopped ? <Play size={14}/> : <Pause size={14}/>}</span>{reducedMotion ? 'Reduced motion' : paused ? 'Play example' : 'Pause example'}</button>
           <button type="button" className="pipeline-playback" onClick={() => { setPaused(true); setMessageIndex(index => (index + 1) % messages.length) }}><span className="playback-icon" aria-hidden="true"><StepForward size={15}/></span>Next step</button>

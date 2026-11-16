@@ -7,7 +7,8 @@ from datetime import datetime, timezone
 from flask import Flask, jsonify, request, g
 from werkzeug.exceptions import HTTPException
 
-from agent.agent import ProviderUnavailable
+from agent.errors import ProviderUnavailable
+from agent.llm_client import groq_model_options
 from agent.stateless import CommerceTools, StatelessAssistant
 
 MAX_BODY_BYTES = 256 * 1024
@@ -34,7 +35,8 @@ def create_stateless_app(*, assistant=None, api_key=None, env_path=None):
             raise ValueError('Set GROQ_API_KEY and GROQ_MODEL for the shopping assistant.')
         from langchain_groq import ChatGroq
         model = ChatGroq(model=model_id, api_key=groq_key, temperature=0, timeout=30,
-                         max_retries=1, max_tokens=1500)
+                         max_retries=1, max_tokens=1500,
+                         **groq_model_options(model_id, os.environ.get('GROQ_REASONING_EFFORT')))
         assistant = StatelessAssistant(model, CommerceTools(
             os.environ.get('COMMERCE_API_URL', 'http://127.0.0.1:8001'), internal_key))
     app = Flask(__name__, static_folder=None)

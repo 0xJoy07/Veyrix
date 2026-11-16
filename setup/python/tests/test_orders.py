@@ -1,3 +1,4 @@
+from conftest import make_session
 import pytest
 from sqlalchemy import select, update
 from concurrent.futures import ThreadPoolExecutor
@@ -22,7 +23,7 @@ def test_order_confirmation_and_duplicate(runtime, session):
 
 def test_wrong_confirmation_and_cross_customer(runtime, session):
     token = prepare(runtime, session)
-    bob = runtime.sessions.get(runtime.sessions.create('bob'))
+    bob = make_session('bob')
     with pytest.raises(ValueError):
         runtime.orders.confirm(bob, token)
     result = runtime.orders.confirm(session, token)
@@ -54,7 +55,7 @@ def test_dispatched_cannot_cancel(runtime, session):
         runtime.orders.prepare_cancel(session, result['order_id'])
 
 def test_last_unit_concurrent(runtime, session):
-    bob = runtime.sessions.get(runtime.sessions.create('bob'))
+    bob = make_session('bob')
     a, b = prepare(runtime, session, 'p2'), prepare(runtime, bob, 'p2')
     def attempt(pair):
         try:

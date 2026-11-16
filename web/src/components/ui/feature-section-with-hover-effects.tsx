@@ -5,7 +5,7 @@ import './feature-section-with-hover-effects.css';
 
 const features: { title: string; description: string; icon: LucideIcon }[] = [
   { title: 'Grounded in your catalog', description: 'Find products using prices and stock read directly from your connected business database.', icon: Database },
-  { title: 'Built for conversation', description: 'LangChain and Groq coordinate shopping tools with context from the current session.', icon: MessagesSquare },
+  { title: 'Built for conversation', description: 'LangChain agents coordinate shopping tools; LangGraph memory receives verified conversation history.', icon: MessagesSquare },
   { title: 'Reviews in context', description: 'Explore available product reviews alongside catalog details before making a choice.', icon: Star },
   { title: 'A cart that keeps up', description: 'Add, update, and remove items in a Supabase-backed cart with quantities checked against stock.', icon: ShoppingCart },
   { title: 'People stay in control', description: 'The agent prepares the order. The confirmation button authorizes checkout after address and total review.', icon: ShieldCheck },

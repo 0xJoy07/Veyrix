@@ -1,3 +1,4 @@
+from conftest import make_session
 """Opt-in isolated real PostgreSQL contract test; never touches an existing server.
 
 Set SHOPPING_TEST_POSTGRES_BIN to a directory containing initdb and pg_ctl.
@@ -44,7 +45,7 @@ def test_postgres_transaction_contract(tmp_path):
             conn.execute(products.insert().values(id='p1', name='Product', price_minor=100, stock=1))
         engine.dispose()
         runtime = Runtime(config, secrets)
-        session = runtime.sessions.get(runtime.sessions.create('test'))
+        session = make_session('test')
         runtime.cart.set_item(session, 'p1', 1)
         pending = runtime.orders.prepare(session, '123 Test Road')
         order = runtime.orders.confirm(session, pending['confirmation_id'])

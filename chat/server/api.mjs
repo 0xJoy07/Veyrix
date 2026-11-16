@@ -1,3 +1,4 @@
+import { once } from 'node:events';
 const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '[::1]']);
 const GET_ROUTES = new Set(['/api/health', '/api/account']);
 const POST_ROUTES = new Set([
@@ -49,25 +50,51 @@ export function createApiMiddleware({ backendUrl = 'http://127.0.0.1:8001', fetc
         if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error();
       } catch { return fail(res, 400, 'invalid_request', 'Send a valid JSON object.'); }
     }
+    const wantsStream = path === '/api/chat' && req.headers.accept === 'text/event-stream';
+    const controller = new AbortController();
+    const disconnected = () => controller.abort();
+    res.once('close', disconnected);
     try {
       const response = await fetchImpl(new URL(path, upstream), {
         method,
         headers: {
           'Content-Type': 'application/json',
+          ...(wantsStream ? { Accept: 'text/event-stream' } : {}),
           ...(req.headers.cookie ? { Cookie: req.headers.cookie } : {}),
           ...(req.headers.origin ? { Origin: req.headers.origin } : {}),
         },
         ...(body === undefined ? {} : { body }),
-        signal: AbortSignal.timeout(180_000),
+        signal: AbortSignal.any([AbortSignal.timeout(180_000), controller.signal]),
         redirect: 'error',
       });
-      const data = await response.json();
       const cookies = response.headers.getSetCookie();
       if (cookies.length) res.setHeader('Set-Cookie', cookies);
+      if (wantsStream && response.ok && response.headers.get('content-type')?.split(';')[0].trim() === 'text/event-stream' && response.body) {
+        res.writeHead(response.status, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', 'X-Accel-Buffering': 'no' });
+        res.flushHeaders();
+        let bytes = 0;
+        for await (const chunk of response.body) {
+          bytes += chunk.byteLength;
+          if (bytes > 1024 * 1024) throw new Error('Response too large');
+          if (!res.write(chunk)) await once(res, 'drain', { signal: controller.signal });
+        }
+        res.end();
+        return;
+      }
+      const data = await response.json();
       res.writeHead(response.status, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' });
       res.end(JSON.stringify(data));
     } catch {
+      if (res.destroyed) return;
+      if (res.headersSent) {
+        res.end('event: error\ndata: ' + JSON.stringify({ error: { code: 'stream_interrupted', message: 'The reply was interrupted. Check your saved conversation before sending again; the request may already have completed.' } }) + '\n\n');
+        return;
+      }
+      if (wantsStream) return fail(res, 503, 'stream_interrupted', 'The connection was interrupted. Check your saved conversation before sending again; the request may already have completed.');
       fail(res, 503, 'backend_unavailable', 'Cannot reach the Veyrix service. Check that the Node backend is running, then try again.');
+    } finally {
+      res.removeListener('close', disconnected);
+      controller.abort();
     }
   };
 }

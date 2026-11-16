@@ -15,7 +15,7 @@ export const heroContent: ScrollExperienceContent = {
       { title: 'Read live records', body: 'Retrieve prices and stock from your database.' }
     ], [['database', 'Business data', 'LIVE SUPABASE'], ['check', 'Prisma queries', 'VALIDATED CATALOG'], ['bot', 'Veyrix agent', 'GROUNDED ANSWERS']], 'Catalog reads implemented'),
     chapter('Guide the conversation', '02 / SHOPPING EXPERIENCE', ['Less searching.', 'More discovering.'], 'Turn a customer’s request into a useful shopping conversation, with catalog tools, reviews, and a saved cart.', '#b9a1ff', [
-      { title: 'Understand the request', body: 'LangChain and Groq coordinate the tool calls.' },
+      { title: 'Understand the request', body: 'LangChain agents and Groq coordinate tools with LangGraph short-term memory.' },
       { title: 'Explore the catalog', body: 'Find products and read available reviews.' },
       { title: 'Build a cart', body: 'Validate quantities against available stock.' }
     ], [['message-square', 'Customer request', 'CONVERSATION'], ['bot', 'Shopping tools', 'CATALOG + REVIEWS'], ['check', 'Saved cart', 'VALIDATED ITEMS']], 'Available in the interactive chat'),

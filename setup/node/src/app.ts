@@ -6,7 +6,8 @@ import { ApiError, AUTH_TTL_MS, equal, normalizePhone } from './security.js';
 import { db, transaction, ownedChat, json, jsonData, type Message } from './store.js';
 import { validSender } from './email.js';
 import { account, authenticate, startAuth, verifyAuth } from './auth.js';
-import { addAddress, assertNotBusy, chat, confirm, lookupOrder, prepareCancel, prepareCheckout, tool } from './commerce.js';
+import { addAddress, assertNotBusy, chat, chatMessageSchema, confirm, lookupOrder, prepareCancel, prepareCheckout, tool } from './commerce.js';
+import { streamChat } from './chat-stream.js';
 
 export function createApp(config: Config) {
   const app = express();
@@ -58,9 +59,11 @@ export function createApp(config: Config) {
   app.post('/api/addresses',async (req,res)=>{res.json(await addAddress(await authenticate(req.headers.cookie),req.body));});
   app.post('/api/checkout/prepare',async (req,res)=>{res.json(await prepareCheckout(await authenticate(req.headers.cookie),req.body,config));});
   app.post('/api/chat',async (req,res)=>{
-    const session=await authenticate(req.headers.cookie), current=await account(session);
-    if(current.profile_required) throw new ApiError(400,'profile_required','Complete your name and mobile number to continue.');
-    res.json(await chat(session,req.body,config));
+    const session=await authenticate(req.headers.cookie);
+    const input=chatMessageSchema.parse(req.body);
+    if(req.get('accept')?.split(',').some(value=>value.trim().split(';')[0]==='text/event-stream')) {
+      await streamChat(res,progress=>chat(session,input,config,progress));
+    } else res.json(await chat(session,input,config));
   });
   app.post('/api/chat/confirm',async (req,res)=>{res.json(await confirm(await authenticate(req.headers.cookie),req.body,config));});
   app.post('/api/chat/end',async (req,res)=>{

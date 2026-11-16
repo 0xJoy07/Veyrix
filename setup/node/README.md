@@ -6,6 +6,33 @@ the current request's verified customer, chat ID, turn ID and recent history; no
 customer/session state is persisted in Python or local files. Browser identity is
 an opaque HttpOnly cookie whose SHA-256 hash is stored in Supabase.
 
+Python uses `langchain.agents.create_agent` and a request-scoped LangGraph
+`InMemorySaver`. Node supplies the latest 20 saved messages for each turn; the
+agent keeps model/tool message state during that request. The full durable
+transcript remains in Supabase, with no separate persistent Python checkpoint
+database or cross-chat preference store.
+
+For `POST /api/chat`, clients may request `Accept: text/event-stream`. The response
+contains fixed `status` events (`checking`, `working`, `saving`) followed by a
+`result` only after transcript persistence, or a sanitized `error`. Ordinary
+clients still receive JSON. Raw provider tokens and tool payloads are not streamed.
+The proxy forwards the stream without buffering; the client must not automatically
+retry an interrupted mutation. Reload the conversation to inspect saved state.
+Failures after dispatch use `request_outcome_unknown`: a cart tool may already
+have committed, so the chat hides Retry and asks the customer to check their cart.
+Successful transcript saves already release the turn lease; no extra cleanup
+database write is needed on that path.
+
+Chat authorization loads only required profile fields inside the turn-lease
+transaction, avoiding an extra full account/address fetch. Timing logs report
+preparation, assistant, save and total durations without customer message contents.
+Python handles exact greetings/thanks/cart reads without model calls and bounds
+model/tool context for other requests; this does not establish a live latency SLA.
+Classifier budgets are model-aware: GPT-OSS uses 512 tokens with low reasoning
+effort, known non-reasoning Llama models use eight, and unknown models receive
+512 without an unsupported reasoning option. The Python worker's optional
+`GROQ_REASONING_EFFORT` overrides main-agent effort only for supported GPT-OSS models.
+
 ## Setup
 
 Use Node 22.12+ (Node 26 was used during development). From `setup/node`:
@@ -21,6 +48,10 @@ npm run dev
 Prisma 7 uses the PostgreSQL driver adapter. `prisma.config.ts` supplies the CLI
 connection from `DIRECT_URL`; runtime explicitly supplies the URL's `schema`
 parameter to `PrismaPg` instead of relying on the PostgreSQL driver's search path.
+`database-config.ts` validates that schema names are simple 1–63 character SQL
+identifiers. Customer/model values stay in Prisma query parameters; the agent
+has no arbitrary SQL tool. SQL security regressions cover hostile-looking values
+and ownership filters. The code audit found no confirmed injection vulnerability.
 Hosted Supabase connections trust its official public CA bundled in `certs/`,
 with certificate-chain and hostname verification enabled. A custom trusted CA
 can be selected with `DATABASE_SSL_CA`; never disable TLS verification globally.

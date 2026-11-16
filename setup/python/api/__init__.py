@@ -1,4 +1,9 @@
-"""Local application API, owned and injected by main.py."""
-from .service import PreparedApplication, ShoppingAPI, prepare_application
+"""HTTP package; administrative exports are loaded only on explicit access."""
+__all__ = ['PreparedApplication', 'prepare_application']
 
-__all__ = ['PreparedApplication', 'ShoppingAPI', 'prepare_application']
+
+def __getattr__(name):
+    if name in __all__:
+        from . import service
+        return getattr(service, name)
+    raise AttributeError(name)

@@ -112,11 +112,11 @@ const capabilities: Capability[] = [
   },
   {
     "id": "assistant",
-    "title": "Stateless shopping assistant",
+    "title": "LangChain agent & short-term memory",
     "state": "implemented",
     "domain": "Runtime",
-    "summary": "Python receives request-scoped context and calls private Node tools.",
-    "evidence": "Mock tests cover tool orchestration and scoped context. Live model checks rejected general-knowledge and bypass requests.",
+    "summary": "LangChain create_agent calls private Node tools; LangGraph checkpoint memory starts from verified Supabase history for each request.",
+    "evidence": "Deterministic tests cover agent orchestration, bounded history, zero-model shortcuts and checkpoint isolation. SQL regressions cover literal inputs and ownership. Live-provider latency and behavior still require separate evaluation.",
     "paths": [
       "setup/python/agent/stateless.py",
       "setup/python/tests/test_stateless_assistant.py"
@@ -129,7 +129,7 @@ const capabilities: Capability[] = [
     "title": "Live service logs & delivery errors",
     "state": "implemented",
     "domain": "Operations",
-    "summary": "Node, Python and chat terminals report request status and timing.",
+    "summary": "Node, Python and chat terminals report request status and stage timing. Chat shows fixed progress events and the saved final answer.",
     "evidence": "The launcher opens separate service terminals; Resend errors are surfaced without logging OTPs or credentials.",
     "paths": [
       "start-dev.ps1",
@@ -225,7 +225,7 @@ export default function Status() {
   const hasFilters = state !== 'all' || domain !== 'all' || query !== '';
   const reset = () => { setState('all'); setDomain('all'); setQuery(''); };
   return <div className="knowledge-page project-status-page">
-    <header className="doc-hero status-hero"><div><p className="kicker">PROJECT STATUS / DELIVERY & EVIDENCE</p><h1>A working core.<br/><span>A visible path forward.</span></h1><p>Review the working prototype, its recorded checks, and the remaining work before a hosted release. Examples use fictional demo data; connected customer and catalog records are not published.</p><div className="status-snapshot-note"><span/><span>Repository snapshot · reviewed 11 November 2026<br/><small>A documented assessment, not live service monitoring.</small></span></div></div><aside className="status-release-card"><span className="status-eyebrow">Current release posture</span><ShieldCheck size={26}/><strong>Connected prototype</strong><p>Interactive chat, verified customers and Supabase persistence are implemented.</p><div><span>Public application rollout</span><b>Production validation remains</b></div></aside></header>
+    <header className="doc-hero status-hero"><div><p className="kicker">PROJECT STATUS / DELIVERY & EVIDENCE</p><h1>A working core.<br/><span>A visible path forward.</span></h1><p>Review the working prototype, its recorded checks, and the remaining work before a hosted release. Examples use fictional demo data; connected customer and catalog records are not published.</p><div className="status-snapshot-note"><span/><span>Repository snapshot · reviewed 16 November 2026<br/><small>A documented assessment, not live service monitoring.</small></span></div></div><aside className="status-release-card"><span className="status-eyebrow">Current release posture</span><ShieldCheck size={26}/><strong>Connected prototype</strong><p>Interactive chat, verified customers and Supabase persistence are implemented.</p><div><span>Public application rollout</span><b>Production validation remains</b></div></aside></header>
 
     <section className="status-summary" aria-label="Capability counts">{deliveryStates.map((value, index) => {
       const Icon = [CheckCircle2, FlaskConical, CircleDashed][index];

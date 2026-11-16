@@ -3,7 +3,7 @@ import { ArrowUpRight, Check, History, LogOut, MapPin, MessageCircleDashed, Shop
 import { MotionConfig } from 'motion/react';
 import { AIChatCard, type ChatMessage } from '@/components/ui/ai-chat-card';
 import { DeliveryCard, FarewellCard, IdentityCard, OtpCard, ProfileCard, type Address, type AddressInput, type AuthInput, type Challenge, type Customer } from '@/components/commerce-cards';
-import { ApiError, request } from '@/lib/api';
+import { ApiError, request, requestChat } from '@/lib/api';
 
 type Pending = { token?: string; kind?: string; [key: string]: unknown };
 type Account = { authenticated: boolean; customer?: Customer; addresses?: Address[]; chat_id?: string; messages?: Array<{ id?: string; role: string; content: string }>; pending?: Pending; ended?: boolean; profile_required?: boolean };
@@ -26,6 +26,7 @@ export default function App() {
   const [authInput, setAuthInput] = useState<AuthInput | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState<string | undefined>();
   const [error, setError] = useState<string | null>(null);
   const [connection, setConnection] = useState('Connecting');
   const [retry, setRetry] = useState<string | null>(null);
@@ -57,7 +58,7 @@ export default function App() {
         if (caught.code === 'chat_ended') { setEnded(true); setPending(null); setCheckout(false); }
       }
       throw caught;
-    } finally { locked.current = false; setBusy(false); }
+    } finally { locked.current = false; setBusy(false); setProgress(undefined); }
   }
   function launch(work: () => Promise<void>) { void perform(work).catch(() => {}); }
   function receive(result: ChatResponse) {
@@ -74,8 +75,13 @@ export default function App() {
     if (!retrying) setMessages(previous => [...previous, { id: crypto.randomUUID(), role: 'user', content: message }]);
     setRetry(null);
     launch(async () => {
-      try { receive(await request<ChatResponse>('/api/chat', { message })); }
-      catch (caught) { setRetry(message); throw caught; }
+      setProgress('Connecting to your shopping companion…');
+      try { receive(await requestChat<ChatResponse>(message, stage => setProgress({ checking: 'Checking your conversation…', working: 'Working on your request…', saving: 'Saving your reply…' }[stage]))); }
+      catch (caught) {
+        if (caught instanceof ApiError && ['stream_interrupted', 'request_outcome_unknown'].includes(caught.code)) setPending(null);
+        else setRetry(message);
+        throw caught;
+      }
     });
   }
   function reset() {
@@ -106,7 +112,7 @@ export default function App() {
       </section>
       <section aria-label="Shopping conversation" className="min-w-0">
         {customer && !restore && !challenge && <div className="conversation-toolbar"><span className="min-w-0 truncate">Welcome, {customer.name.split(' ')[0]}</span><div>{!ended && !profileRequired && <><button disabled={busy || loading} onClick={() => { setCheckout(true); setPending(null); setError(null); }}><MapPin size={14}/>Checkout</button><button disabled={busy || loading} onClick={() => launch(async () => { const result = await request<ChatResponse>('/api/chat/end'); receive(result); setCheckout(false); setPending(null); setEnded(true); })}><LogOut size={14}/>End chat</button></>}<button disabled={busy || loading} onClick={() => launch(async () => { await request("/api/auth/logout"); applyAccount({ authenticated: false }); setChallenge(null); setAuthInput(null); setRestore(false); })}>Sign out</button></div></div>}
-        <AIChatCard title="Your shopping companion" subtitle={customer && !restore ? 'A good place to find your next favorite.' : 'A personal experience starts with a secure hello.'} greeting="What can I help you find?" prompt="Tell me what you have in mind. We’ll find it together." placeholder="Ask about products, reviews, or your cart…" prompts={suggestions} icon={<MessageCircleDashed className="size-5"/>} messages={restore || !customer ? [] : messages} pending={ready && !checkout ? pending : null} isLoading={busy} error={error} onSend={message => send(message)} onReset={ready ? reset : undefined} onConfirm={() => launch(async () => receive(await request<ChatResponse>('/api/chat/confirm', { confirmation_id: pending?.token })))} interaction={interaction} composerEnabled={ready && !checkout} className="chat-surface"/>
+        <AIChatCard title="Your shopping companion" subtitle={customer && !restore ? 'A good place to find your next favorite.' : 'A personal experience starts with a secure hello.'} greeting="What can I help you find?" prompt="Tell me what you have in mind. We’ll find it together." placeholder="Ask about products, reviews, or your cart…" prompts={suggestions} icon={<MessageCircleDashed className="size-5"/>} messages={restore || !customer ? [] : messages} pending={ready && !checkout ? pending : null} isLoading={busy} loadingLabel={progress} error={error} onSend={message => send(message)} onReset={ready ? reset : undefined} onConfirm={() => launch(async () => receive(await request<ChatResponse>('/api/chat/confirm', { confirmation_id: pending?.token })))} interaction={interaction} composerEnabled={ready && !checkout} className="chat-surface"/>
         {retry && !busy && ready && <button className="mt-3 text-xs underline underline-offset-4" onClick={() => send(retry, true)}>Retry last message</button>}
         <p className="mt-4 text-center text-[11px] text-muted-foreground">Your details stay private. Review your order before confirming.</p>
       </section>

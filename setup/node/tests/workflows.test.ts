@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { db, type Tx } from '../src/store.js';
 import { startAuth, verifyAuth } from '../src/auth.js';
-import { confirm, prepareCancel, prepareCheckout, tool } from '../src/commerce.js';
+import { chat, confirm, prepareCancel, prepareCheckout, tool } from '../src/commerce.js';
 import { ApiError, digest, OTP_TTL_MS } from '../src/security.js';
 import type { Config } from '../src/config.js';
 import type { AuthSession } from '@prisma/client';
@@ -126,4 +126,60 @@ test('failed Resend delivery invalidates the OTP and reports failure instead of 
   t.after(()=>fetchMock.mock.restore());
   await assert.rejects(startAuth({identifier:'test@example.test'},'127.0.0.1',config),(e:unknown)=>e instanceof ApiError && e.code==='email_unavailable');
   assert.ok(f.state.otpChallenge[0].consumed_at);
+});
+
+test('chat progress is followed by persisted answer; turn identity never comes from body',async t=>{
+  const f=fixture(t),{session}=seed(f);
+  const originalRelease=db.chat.updateMany;
+  (db.chat as any).updateMany=async()=>{assert.fail('A committed reply already released its lease; do not make an extra database call.');};
+  const stages:string[]=[];
+  const upstream=mock.method(globalThis,'fetch',async(_url,options)=>{
+    const sent=JSON.parse(String(options?.body));
+    assert.equal(sent.customer_id,session.customer_id);
+    assert.equal(sent.chat_id,session.chat_id);
+    assert.equal(sent.turn_id,f.state.chat[0].lease_token);
+    assert.equal(options?.redirect,'error');
+    return Response.json({answer:'Current cart result.'});
+  });
+  t.after(()=>{(db.chat as any).updateMany=originalRelease;upstream.mock.restore();});
+  const result=await chat(session,{message:'Show my cart'},config,stage=>stages.push(stage));
+  assert.deepEqual(stages,['working','saving']);
+  assert.equal(f.state.chat[0].messages.at(-1).content,result.answer);
+  assert.equal(f.state.chat[0].lease_token,null);
+  await assert.rejects(chat(session,{message:'Hi',customer_id:'other'},config));
+  assert.equal(upstream.mock.callCount(),1);
+});
+
+test('chat rejects incomplete/unverified profiles before model access and releases failed turns',async t=>{
+  const f=fixture(t),{session}=seed(f);
+  const originalRelease=db.chat.updateMany;let releases=0;
+  (db.chat as any).updateMany=async()=>{releases++;return {count:1};};
+  const upstream=mock.method(globalThis,'fetch',async()=>{throw new Error('private provider error');});
+  t.after(()=>{(db.chat as any).updateMany=originalRelease;upstream.mock.restore();});
+  f.state.customer[0].phone=null;
+  await assert.rejects(chat(session,{message:'Hi'},config),(e:unknown)=>e instanceof ApiError && e.code==='profile_required');
+  f.state.customer[0].phone='+919876543210';
+  f.state.customer[0].email_verified_at=null;
+  await assert.rejects(chat(session,{message:'Hi'},config),(e:unknown)=>e instanceof ApiError && e.code==='verification_required');
+  assert.equal(upstream.mock.callCount(),0);
+  f.state.customer[0].email_verified_at=new Date();
+  await assert.rejects(chat(session,{message:'Hi'},config),(e:unknown)=>e instanceof ApiError && e.code==='request_outcome_unknown' && !e.message.includes('private'));
+  assert.equal(releases,1);
+});
+
+test('a failure after a cart mutation reports an unknown outcome instead of inviting replay',async t=>{
+  const f=fixture(t),{session}=seed(f);
+  const originalRelease=db.chat.updateMany;
+  (db.chat as any).updateMany=async()=>{throw new Error('private database outage');};
+  const upstream=mock.method(globalThis,'fetch',async()=>{
+    // Represent a tool committing successfully before generation fails.
+    f.state.chat[0].cart.shoe=3;
+    throw new Error('private model failure');
+  });
+  t.after(()=>{(db.chat as any).updateMany=originalRelease;upstream.mock.restore();});
+  await assert.rejects(chat(session,{message:'Add one more shoe'},config),(e:unknown)=>
+    e instanceof ApiError && e.code==='request_outcome_unknown' && /check your cart/.test(e.message) && !/private/.test(e.message));
+  assert.equal(f.state.chat[0].cart.shoe,3);
+  assert.equal(f.state.chat[0].messages.length,0);
+  assert.equal(upstream.mock.callCount(),1);
 });
