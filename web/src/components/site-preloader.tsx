@@ -4,8 +4,8 @@ import './site-preloader.css';
 
 const TUBE_COLORS = ['#d6d6d6', '#f5f5f5', '#9daeff', '#bbbbbb', '#e8e8e8'];
 const FRAME_COLORS = ['#9daeff', '#777777', '#d6d6d6', '#777777'];
-// Preserve the supplied drawing, at 2.2x speed: 1.82s write + brief hold + 350ms exit.
-const INTRO_MS = 2200;
+// Preserve the supplied drawing: 2.67s write + brief hold + 350ms exit.
+const INTRO_MS = 3200;
 const EXIT_MS = 350;
 
 class IntroBoundary extends Component<{ children: ReactNode; onFailure: () => void }, { failed: boolean }> {
@@ -19,7 +19,7 @@ class IntroBoundary extends Component<{ children: ReactNode; onFailure: () => vo
 export default function SitePreloader({ children }: { children: ReactNode }) {
   const [phase, setPhase] = useState<'intro' | 'leaving' | 'done'>(() =>
     window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'done' : 'intro');
-  const skip = useRef<HTMLButtonElement>(null);
+  const overlay = useRef<HTMLDivElement>(null);
   const finish = useCallback(() => setPhase('done'), []);
   const showing = phase !== 'done';
 
@@ -28,7 +28,7 @@ export default function SitePreloader({ children }: { children: ReactNode }) {
     const originalOverflow = document.body.style.overflow;
     const previousFocus = document.activeElement;
     document.body.style.overflow = 'hidden';
-    skip.current?.focus({ preventScroll: true });
+    overlay.current?.focus({ preventScroll: true });
     const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
     const change = () => { if (preference.matches) finish(); };
     const escape = (event: KeyboardEvent) => { if (event.key === 'Escape') finish(); };
@@ -53,18 +53,17 @@ export default function SitePreloader({ children }: { children: ReactNode }) {
 
   return <>
     <div inert={showing} aria-hidden={showing || undefined}>{children}</div>
-    {showing && <div className="site-preloader t-panel-slide" data-open={phase === 'intro'}
+    {showing && <div ref={overlay} tabIndex={-1} className="site-preloader t-panel-slide" data-open={phase === 'intro'}
       role="dialog" aria-modal="true" aria-label="Welcome to Veyrix"
       onTransitionEnd={event => {
         if (event.target === event.currentTarget && event.propertyName === 'opacity' && phase === 'leaving') finish();
       }}>
       <IntroBoundary onFailure={finish}>
         <NeonHello word="hello" label="hello. Welcome to Veyrix" colors={TUBE_COLORS} frame={FRAME_COLORS}
-          loop={false} speed={2.2} scale={0.68} interactive={false}>
+          loop={false} speed={1.5} scale={0.68} interactive={false}>
           <p className="site-preloader-welcome">WELCOME TO VEYRIX</p>
         </NeonHello>
       </IntroBoundary>
-      <button ref={skip} className="site-preloader-skip" type="button" onClick={finish}>Skip intro <span aria-hidden="true">↗</span></button>
     </div>}
   </>;
 }
