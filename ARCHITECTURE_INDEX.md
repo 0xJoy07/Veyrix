@@ -1,5 +1,7 @@
 # Veyrix architecture and file reference
 
+**[Live documentation](https://veyrixagent.vercel.app)** · [Visual architecture guide](ARCHITECTURE.md) · [Project overview](README.md)
+
 This reference describes authored source, runtime ownership and storage. Dependency manifests and lockfiles define installed versions. Generated builds, installed packages, caches and secret environment files are not application source.
 
 ## Services and request flow
@@ -270,8 +272,6 @@ Python returns `answer` and optionally `action: "checkout"`. Tool requests go to
 | `src/components/code-block.tsx` | Reusable command/code presentation. |
 | `src/components/technology-marquee.tsx` | Technology list presentation. |
 | `src/components/ui/ai-agent-pipeline.tsx` | Desktop/mobile animated architecture illustration; not connected to live execution. |
-| `src/components/ui/neon-hello.tsx` | Supplied handwritten hello renderer with the original stroke geometry, WebGL glow and SVG fallback. Used with Veyrix silver/lavender colors. |
-| `src/components/site-preloader.tsx`, `src/components/site-preloader.css` | Brief full-page welcome on initial load, mounted outside routing. Accelerated original writing, single-line welcome caption, fade/lift exit, Escape dismissal, reduced-motion bypass and cleanup. The page loads beneath the overlay. |
 | `src/components/ui/dimensional-workflow-hero.tsx` | Scroll-driven narrative, workflow panels and hero animation settings. |
 | `src/components/ui/dot-field.tsx` | Decorative interactive dot-field rendering. |
 | `src/components/ui/halftone-wordmark-footer.tsx` | Halftone brand/footer, visual presets and navigation. |

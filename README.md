@@ -8,7 +8,7 @@
 
 A conversational commerce prototype that connects AI-assisted product discovery with verified customers, live inventory, and explicit checkout.
 
-[Explore the architecture](ARCHITECTURE.md) · [Run the commerce service](setup/node/README.md) · [Run the AI agent](setup/python/README.md) · [Documentation website](web/README.md)
+[Live documentation](https://veyrixagent.vercel.app) · [Explore the architecture](ARCHITECTURE.md) · [Run the commerce service](setup/node/README.md) · [Run the AI agent](setup/python/README.md) · [Documentation source & setup](web/README.md)
 
 ![Status](https://img.shields.io/badge/Status-Working_Prototype-9DAEFF?style=for-the-badge)
 ![React](https://img.shields.io/badge/React-19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
@@ -82,7 +82,7 @@ Real captures of the local documentation website. The workflow illustration is e
 | Guided checkout | Collects an Indian delivery address, prepares a review, and requires explicit confirmation. |
 | Order management | Retrieves owned orders and prepares eligible cancellations before dispatch. |
 | Conversation recovery | Persists chat history in Supabase and supports restoration after fresh verification. |
-| Responsive experience | Includes chat progress updates, mobile layouts, and a short branded documentation intro. |
+| Responsive experience | Includes chat progress updates and mobile layouts. |
 
 Payment is **pay on delivery**. Adding to a cart or replying “yes” does not place an order.
 

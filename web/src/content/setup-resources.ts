@@ -1,3 +1,5 @@
+import { DOCUMENTATION_URL } from './repository';
+
 /** Official service links. Version requirements come from the repository. */
 export const setupLinks = {
   python: 'https://www.python.org/downloads/',
@@ -22,6 +24,7 @@ export const requiredSetupResources = [
   { title:'Resend account',badge:'Required · email verification',text:'Configure a sending key and a valid sender email. A display name alone is not a sender address.',links:[{label:'Resend API keys',href:setupLinks.resend},{label:'Test-sender restriction',href:setupLinks.resendTesting}],note:'onboarding@resend.dev can email only the Resend account owner. Other recipients require a verified domain.' },
 ];
 export const optionalSetupResources = [
+  {title:'Live documentation',label:'Open Veyrix docs',href:DOCUMENTATION_URL,text:'Browse the hosted guides without starting the documentation website locally.'},
   {title:'Git for Windows',label:'Download Git',href:setupLinks.git,text:'Clone the repository and review changes. A downloaded ZIP also works.'},
   {title:'PowerShell',label:'PowerShell installation',href:setupLinks.powershell,text:'The commands and live-log launcher in this guide use Windows PowerShell.'},
 ];

@@ -1,5 +1,7 @@
 # Veyrix documentation website
 
+**[Open the live documentation](https://veyrixagent.vercel.app)**
+
 React + TypeScript + Vite documentation for the working Veyrix prototype. This static website does not connect to customer data, read credentials, send email, or run checkout. The interactive shopping app lives in `../chat`.
 
 ## Run and build

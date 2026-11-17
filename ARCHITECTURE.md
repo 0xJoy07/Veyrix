@@ -2,7 +2,7 @@
 
 > A detailed visual guide to the shopping application: how requests move, where memory lives, which service authorizes each action, and how orders are committed.
 
-[Project overview](README.md) · [File-by-file reference](ARCHITECTURE_INDEX.md) · [Commerce setup](setup/node/README.md) · [Agent setup](setup/python/README.md)
+[Live documentation](https://veyrixagent.vercel.app) · [Project overview](README.md) · [File-by-file reference](ARCHITECTURE_INDEX.md) · [Commerce setup](setup/node/README.md) · [Agent setup](setup/python/README.md)
 
 The diagrams are separated by responsibility so individual labels remain readable. On GitHub, open a rendered diagram's expanded view to inspect it at a larger size.
 
