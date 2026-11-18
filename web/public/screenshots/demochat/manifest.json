@@ -1,1 +1,34 @@
-{"screenshots":[]}
+{
+  "screenshots": [
+    {
+      "file": "chat_auth.png",
+      "title": "OTP-based authentication",
+      "alt": "Veyrix chat displaying its email or mobile sign-in form with a six-digit verification code field",
+      "caption": "Customers verify their identity before accessing the shopping conversation."
+    },
+    {
+      "file": "chat_checkout.png",
+      "title": "Delivery address selection",
+      "alt": "Veyrix chat showing a saved address card with a Deliver here and review button",
+      "caption": "Choose a saved address or add a new one before reviewing the order."
+    },
+    {
+      "file": "chat_confirmation.png",
+      "title": "Order confirmation review",
+      "alt": "Veyrix chat showing an order review card with item details, delivery address and a Confirm order button",
+      "caption": "Review items, delivery details and total before placing a pay-on-delivery order."
+    },
+    {
+      "file": "chat_cancel_confirmation.png",
+      "title": "Cancellation review",
+      "alt": "Veyrix chat showing a cancellation review card with order details and a Confirm cancellation button",
+      "caption": "Eligible orders can be cancelled before dispatch through an explicit confirmation."
+    },
+    {
+      "file": "chat_cancellation_done.png",
+      "title": "Order cancelled",
+      "alt": "Veyrix chat confirming that the order has been successfully cancelled",
+      "caption": "The full cancellation flow from request to confirmed cancellation."
+    }
+  ]
+}
